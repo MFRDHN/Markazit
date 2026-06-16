@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "home": "Home",
+    "programs": "Programs",
+    "cost": "Tuition",
+    "life": "Life in Madinah",
+    "gallery": "Gallery",
+    "register": "Register",
+    "about": "About Us",
+    "blog": "Blog",
+    "admin": "Admin"
+  },
+  "hero": {
+    "tagline": "Study Knowledge & Technology in the City of the Prophet ﷺ",
+    "subtitle": "An intensive study program combining Islamic sciences, Quran memorization, and information technology in Madinah Al-Munawwarah",
+    "cta_register": "Register Now"
+  },
+  "why_us": {
+    "title": "Why Markaz IT Madinah?",
+    "subtitle": "A unique combination of religious education and technology in the most noble city",
+    "items": [
+      {
+        "title": "Strategic Location",
+        "desc": "Study near Masjid Nabawi, the center of Islamic knowledge for 14 centuries"
+      },
+      {
+        "title": "Integrated Curriculum",
+        "desc": "Combining Islamic sciences, Quran memorization, and modern tech skills"
+      },
+      {
+        "title": "Expert Mentors",
+        "desc": "Guided directly by scholars and professional IT practitioners"
+      },
+      {
+        "title": "Scholarship Path",
+        "desc": "Intensive guidance for Islamic University of Madinah admission"
+      }
+    ]
+  },
+  "programs": {
+    "title": "Featured Programs",
+    "subtitle": "Study programs designed to produce knowledgeable and tech-savvy Muslim generation"
+  },
+  "timeline": {
+    "title": "12-Month Timeline",
+    "subtitle": "Your transformation journey during a year in Madinah"
+  },
+  "gallery": {
+    "title": "Activity Gallery",
+    "subtitle": "Precious moments at Markaz IT Madinah"
+  },
+  "testimonials": {
+    "title": "What Alumni Say?",
+    "subtitle": "Experiences of those who have studied in Madinah"
+  },
+  "cost": {
+    "title": "Investment for Your Future",
+    "subtitle": "Transparent and affordable program costs"
+  },
+  "footer": {
+    "desc": "Islamic education and technology institution based in Madinah Al-Munawwarah, Saudi Arabia",
+    "quick_links": "Quick Links",
+    "contact": "Contact",
+    "follow": "Follow Us",
+    "copyright": "© 2026 Markaz IT Madinah. All rights reserved."
+  },
+  "register": {
+    "title": "Registration Form",
+    "step1": "Personal Data",
+    "step2": "Upload Documents",
+    "step3": "Motivation",
+    "step4": "Confirmation",
+    "next": "Next",
+    "prev": "Previous",
+    "submit": "Submit Registration",
+    "success": "Registration submitted successfully!"
+  },
+  "about": {
+    "title": "About Us",
+    "vision": "Vision",
+    "mission": "Mission"
+  },
+  "blog": {
+    "title": "Blog & Articles",
+    "read_more": "Read More"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "no_data": "No data available"
+  }
+}

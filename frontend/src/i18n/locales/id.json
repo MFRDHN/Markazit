@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "home": "Beranda",
+    "programs": "Program",
+    "cost": "Biaya",
+    "life": "Kehidupan Madinah",
+    "gallery": "Galeri",
+    "register": "Pendaftaran",
+    "about": "Tentang Kami",
+    "blog": "Blog",
+    "admin": "Admin"
+  },
+  "hero": {
+    "tagline": "Belajar Ilmu Syariah & Teknologi di Kota Nabi ﷺ",
+    "subtitle": "Program studi intensif yang memadukan ilmu syar'i, tahfidz Al-Quran, dan teknologi informasi di Madinah Al-Munawwarah",
+    "cta_register": "Daftar Sekarang"
+  },
+  "why_us": {
+    "title": "Mengapa Markaz IT Madinah?",
+    "subtitle": "Kombinasi unik pendidikan agama dan teknologi di kota paling mulia",
+    "items": [
+      {
+        "title": "Lokasi Strategis",
+        "desc": "Belajar di dekat Masjid Nabawi, pusat ilmu Islam sejak 14 abad lalu"
+      },
+      {
+        "title": "Kurikulum Terpadu",
+        "desc": "Memadukan ilmu syar'i, tahfidz Quran, dan skill teknologi modern"
+      },
+      {
+        "title": "Mentor Berpengalaman",
+        "desc": "Dibimbing langsung oleh masyaikh dan praktisi IT profesional"
+      },
+      {
+        "title": "Jalur Beasiswa",
+        "desc": "Bimbingan intensif masuk Universitas Islam Madinah dan kampus lainnya"
+      }
+    ]
+  },
+  "programs": {
+    "title": "Program Unggulan",
+    "subtitle": "Pilihan program studi yang dirancang untuk mencetak generasi Muslim berilmu dan berteknologi"
+  },
+  "timeline": {
+    "title": "Timeline 12 Bulan",
+    "subtitle": "Perjalanan transformasi Anda selama setahun di Madinah"
+  },
+  "gallery": {
+    "title": "Galeri Kegiatan",
+    "subtitle": "Momen-momen berharga di Markaz IT Madinah"
+  },
+  "testimonials": {
+    "title": "Apa Kata Alumni?",
+    "subtitle": "Pengalaman mereka yang telah merasakan belajar di Madinah"
+  },
+  "cost": {
+    "title": "Investasi Masa Depan",
+    "subtitle": "Biaya program yang transparan dan terjangkau"
+  },
+  "footer": {
+    "desc": "Lembaga pendidikan Islam dan teknologi berbasis di Madinah Al-Munawwarah, Arab Saudi",
+    "quick_links": "Tautan Cepat",
+    "contact": "Kontak",
+    "follow": "Ikuti Kami",
+    "copyright": "© 2026 Markaz IT Madinah. Hak cipta dilindungi."
+  },
+  "register": {
+    "title": "Form Pendaftaran",
+    "step1": "Data Pribadi",
+    "step2": "Upload Dokumen",
+    "step3": "Motivasi",
+    "step4": "Konfirmasi",
+    "next": "Selanjutnya",
+    "prev": "Sebelumnya",
+    "submit": "Kirim Pendaftaran",
+    "success": "Pendaftaran berhasil dikirim!"
+  },
+  "about": {
+    "title": "Tentang Kami",
+    "vision": "Visi",
+    "mission": "Misi"
+  },
+  "blog": {
+    "title": "Blog & Artikel",
+    "read_more": "Baca Selengkapnya"
+  },
+  "common": {
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "no_data": "Tidak ada data"
+  }
+}

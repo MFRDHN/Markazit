@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #FDFBF7; /* cream-50 */
+    color: #115e59; /* primary-800 */
+  }
+
+  /* RTL Support for Arabic */
+  [dir='rtl'] {
+    font-family: 'Amiri', serif;
+  }
+
+  [dir='rtl'] .font-sans {
+    font-family: 'Amiri', serif;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-primary-900/10 rounded-2xl shadow-sm shadow-primary-900/5;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-500 hover:bg-white/90 hover:border-primary-500/30 hover:shadow-2xl hover:shadow-primary-500/20;
+  }
+
+  .btn-primary {
+    @apply px-8 py-3.5 bg-gradient-to-r from-primary-700 to-primary-600 text-[#ffffff] font-semibold rounded-xl
+           transition-all duration-300 hover:from-primary-600 hover:to-primary-500
+           hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5
+           active:translate-y-0 active:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply px-8 py-3.5 border-2 border-gold-400/60 text-gold-400 font-semibold rounded-xl
+           transition-all duration-300 hover:bg-gold-400/10 hover:border-gold-400
+           hover:shadow-lg hover:shadow-gold-400/20 hover:-translate-y-0.5;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl lg:text-5xl font-display font-bold text-primary-950;
+  }
+
+  .section-subtitle {
+    @apply text-lg md:text-xl text-primary-700 max-w-2xl mx-auto;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-gold-600;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-cream-200 rounded-xl text-primary-950
+           placeholder:text-primary-600 focus:outline-none focus:border-primary-500 focus:ring-2
+           focus:ring-primary-500/20 transition-all duration-300 shadow-sm;
+  }
+
+  .admin-card {
+    @apply bg-white border border-cream-200 rounded-2xl p-6 transition-all duration-300
+           hover:border-cream-300 shadow-sm shadow-primary-900/5;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FDFBF7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4BCA8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0f766e;
+}
+
+/* Lightbox overrides */
+.yarl__container {
+  background-color: rgba(17, 18, 21, 0.95) !important;
+}
