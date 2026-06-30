@@ -34,6 +34,8 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'applicant_id' => 'required|exists:applicants,id',
             'jumlah' => 'required|numeric|min:0',
+            'norek_pengirim' => 'nullable|string|max:50',
+            'bank_pengirim' => 'nullable|string|max:100',
             'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 

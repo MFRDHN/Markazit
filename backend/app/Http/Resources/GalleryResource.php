@@ -12,7 +12,7 @@ class GalleryResource extends JsonResource
         return [
             'id' => $this->id,
             'judul' => $this->judul,
-            'foto' => $this->foto ? asset('storage/' . $this->foto) : null,
+            'foto' => $this->foto ? url('/s.php?f=' . $this->foto) : null,
             'kategori' => $this->kategori,
             'deskripsi' => $this->deskripsi,
             'created_at' => $this->created_at,

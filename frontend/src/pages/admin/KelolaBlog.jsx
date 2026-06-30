@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
 import api from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function KelolaBlog() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   
   const [formData, setFormData] = useState({
     judul: '',
@@ -62,25 +64,27 @@ export default function KelolaBlog() {
 
     try {
       if (editingId) {
-        data.append('_method', 'PUT'); // Laravel form method spoofing for files
-        await api.post(`/blogs/${editingId}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+        data.append('_method', 'PUT');
+        await api.post(`/blogs/${editingId}`, data);
       } else {
-        await api.post('/blogs', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+        await api.post('/blogs', data);
       }
       setIsModalOpen(false);
       fetchBlogs();
     } catch (error) {
-      alert('Gagal menyimpan artikel');
+      const msg = error.response?.data?.message
+        || (error.response?.data?.errors ? Object.values(error.response.data.errors).flat().join('\n') : null)
+        || 'Gagal menyimpan artikel';
+      alert(msg);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus artikel ini?')) return;
     try {
       await api.delete(`/blogs/${id}`);
       fetchBlogs();
     } catch (error) {
-      alert('Gagal menghapus artikel');
+      alert(error.response?.data?.message || 'Gagal menghapus artikel');
     }
   };
 
@@ -128,7 +132,7 @@ export default function KelolaBlog() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => handleOpenModal(blog)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded transition-colors"><FaEdit /></button>
-                        <button onClick={() => handleDelete(blog.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded transition-colors"><FaTrash /></button>
+                        <button onClick={() => setConfirmDelete(blog.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded transition-colors"><FaTrash /></button>
                       </div>
                     </td>
                   </tr>
@@ -138,6 +142,15 @@ export default function KelolaBlog() {
           </table>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete)}
+        title="Hapus Artikel"
+        message="Yakin ingin menghapus artikel ini?"
+        danger
+      />
 
       {/* Modal */}
       {isModalOpen && (
@@ -167,8 +180,32 @@ export default function KelolaBlog() {
                 <textarea rows="2" value={formData.meta_desc} onChange={e => setFormData({...formData, meta_desc: e.target.value})} className="input-field"></textarea>
               </div>
               <div>
-                <label className="block text-sm font-medium text-primary-700 mb-1">Konten (HTML didukung)</label>
-                <textarea required rows="10" value={formData.konten} onChange={e => setFormData({...formData, konten: e.target.value})} className="input-field font-mono text-sm"></textarea>
+                <label className="block text-sm font-medium text-primary-700 mb-1">Konten</label>
+                <div className="flex flex-wrap gap-1 mb-2 p-1.5 bg-white border border-cream-200 rounded-lg">
+                  {[
+                    { tag: 'h2', label: 'H2' },
+                    { tag: 'h3', label: 'H3' },
+                    { tag: 'p', label: 'P' },
+                    { tag: 'b', label: 'B' },
+                    { tag: 'i', label: 'I' },
+                    { tag: 'ul', label: 'UL' },
+                    { tag: 'li', label: 'LI' },
+                    { tag: 'a', label: 'Link' },
+                    { tag: 'img', label: 'Img' },
+                    { tag: 'blockquote', label: 'Quote' },
+                  ].map(({ tag, label }) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, konten: formData.konten + `<${tag}></${tag}>` })}
+                      className="px-2 py-1 text-xs font-mono font-bold text-primary-700 hover:bg-primary-500/10 rounded transition-colors"
+                      title={`Insert <${tag}>`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <textarea required rows="12" value={formData.konten} onChange={e => setFormData({...formData, konten: e.target.value})} className="input-field font-mono text-sm" placeholder="Tulis konten artikel dengan HTML..."></textarea>
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary px-6 py-2">Batal</button>

@@ -13,7 +13,7 @@ class TestimonialResource extends JsonResource
             'id' => $this->id,
             'nama' => $this->nama,
             'asal' => $this->asal,
-            'foto' => $this->foto ? asset('storage/' . $this->foto) : null,
+            'foto' => $this->foto ? url('/s.php?f=' . $this->foto) : null,
             'isi' => $this->isi,
             'rating' => $this->rating,
             'created_at' => $this->created_at,

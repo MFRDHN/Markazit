@@ -34,13 +34,16 @@ Route::get('/testimonials', [TestimonialController::class, 'index']);
 // Blog
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/categories', [BlogController::class, 'categories']);
-Route::get('/blogs/{blog}', [BlogController::class, 'show']);
+Route::get('/blogs/{blog:id}', [BlogController::class, 'show']);
 
 // Applicant registration (public)
 Route::post('/applicants', [ApplicantController::class, 'store']);
 
 // Payment submission (public)
 Route::post('/payments', [PaymentController::class, 'store']);
+
+// Check payment status by phone number (public)
+Route::post('/applicants/check-payment', [ApplicantController::class, 'checkPaymentStatus']);
 
 // Admin login
 Route::post('/admin/login', [AuthController::class, 'login']);
@@ -60,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/applicants', [ApplicantController::class, 'index']);
     Route::get('/applicants/{applicant}', [ApplicantController::class, 'show']);
     Route::put('/applicants/{applicant}/status', [ApplicantController::class, 'updateStatus']);
+    Route::put('/applicants/{applicant}/allow-payment', [ApplicantController::class, 'allowPayment']);
     Route::delete('/applicants/{applicant}', [ApplicantController::class, 'destroy']);
 
     // Programs CRUD (admin)
@@ -79,8 +83,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Blog CRUD (admin)
     Route::post('/blogs', [BlogController::class, 'store']);
-    Route::put('/blogs/{blog}', [BlogController::class, 'update']);
-    Route::delete('/blogs/{blog}', [BlogController::class, 'destroy']);
+    Route::put('/blogs/{blog:id}', [BlogController::class, 'update']);
+    Route::delete('/blogs/{blog:id}', [BlogController::class, 'destroy']);
 
     // Payments management (admin)
     Route::get('/payments', [PaymentController::class, 'index']);

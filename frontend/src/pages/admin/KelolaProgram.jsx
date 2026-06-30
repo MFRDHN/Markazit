@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSpinner } from 'react-icons/fa';
 import api from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function KelolaProgram() {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   
   const [formData, setFormData] = useState({ nama: '', deskripsi: '', icon: '', urutan: 0 });
 
@@ -51,7 +53,6 @@ export default function KelolaProgram() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin menghapus program ini?')) return;
     try {
       await api.delete(`/programs/${id}`);
       fetchPrograms();
@@ -77,13 +78,22 @@ export default function KelolaProgram() {
                 <span className="text-xs text-primary-500">Urutan: {p.urutan}</span>
                 <div className="flex gap-2">
                   <button onClick={() => handleOpenModal(p)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded"><FaEdit /></button>
-                  <button onClick={() => handleDelete(p.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded"><FaTrash /></button>
+                  <button onClick={() => setConfirmDelete(p.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded"><FaTrash /></button>
                 </div>
               </div>
             </div>
           ))
         }
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete)}
+        title="Hapus Program"
+        message="Yakin menghapus program ini?"
+        danger
+      />
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

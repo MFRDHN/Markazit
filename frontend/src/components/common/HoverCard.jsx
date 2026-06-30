@@ -15,10 +15,10 @@ export function HoverCard({ children, className = "", delay = 0 }) {
       className={`relative group h-full ${className}`}
     >
       {/* Glow effect on hover */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary-500 to-gold-400 rounded-3xl opacity-0 group-hover:opacity-20 blur transition duration-500 pointer-events-none"></div>
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-gold-400 to-gold-600 rounded-3xl opacity-0 group-hover:opacity-30 blur transition duration-500 pointer-events-none"></div>
       
       {/* Content wrapper */}
-      <div className="relative h-full bg-white rounded-3xl border border-cream-200 overflow-hidden shadow-sm shadow-primary-900/5 group-hover:border-primary-500/30 transition-colors duration-300">
+      <div className="relative h-full bg-white rounded-3xl border border-cream-200 overflow-hidden shadow-sm shadow-primary-900/5 group-hover:border-gold-400/40 transition-colors duration-300">
         {children}
       </div>
     </motion.div>

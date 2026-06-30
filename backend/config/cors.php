@@ -14,6 +14,7 @@ return [
 
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:5173'),
+        str_replace('http://', 'https://', env('FRONTEND_URL', 'http://localhost:5173')),
     ],
 
     'allowed_origins_patterns' => [],

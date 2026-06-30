@@ -99,6 +99,51 @@ class ApplicantController extends Controller
     }
 
     /**
+     * Check if applicant is allowed to submit payment (public).
+     */
+    public function checkPaymentStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'no_hp' => 'required|string|max:20',
+        ]);
+
+        $applicant = Applicant::where('no_hp', $validated['no_hp'])
+            ->whereNotNull('payment_allowed_at')
+            ->first();
+
+        if (!$applicant) {
+            return response()->json([
+                'allowed' => false,
+                'message' => 'Pembayaran belum diizinkan. Silakan hubungi admin via WhatsApp.',
+            ]);
+        }
+
+        $hasPayment = $applicant->payments()->exists();
+
+        return response()->json([
+            'allowed' => true,
+            'applicant_id' => $applicant->id,
+            'has_payment' => $hasPayment,
+            'message' => $hasPayment
+                ? 'Bukti pembayaran sudah dikirim.'
+                : 'Silakan upload bukti pembayaran.',
+        ]);
+    }
+
+    /**
+     * Allow applicant to submit payment (admin only).
+     */
+    public function allowPayment(Request $request, Applicant $applicant)
+    {
+        $applicant->update([
+            'payment_allowed_at' => now(),
+            'status' => 'review',
+        ]);
+
+        return new ApplicantResource($applicant);
+    }
+
+    /**
      * Remove the specified applicant.
      */
     public function destroy(Applicant $applicant)

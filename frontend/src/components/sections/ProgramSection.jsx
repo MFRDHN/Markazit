@@ -1,83 +1,121 @@
 import { useTranslation } from 'react-i18next';
-import { FaCode, FaQuran, FaBookOpen, FaGraduationCap } from 'react-icons/fa';
-import { ScrollReveal, StaggerContainer, StaggerItem } from '../common/ScrollReveal';
+import { FaBookOpen, FaQuran, FaCode, FaGraduationCap } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import IslamicOrnament from '../common/IslamicOrnament';
-import { TextReveal } from '../common/TextReveal';
+import SplitText from '../common/SplitText';
 import { HoverCard } from '../common/HoverCard';
+import InteractiveBackground from '../common/InteractiveBackground';
+import darsImg from '../../assets/WhatsApp Image 2026-05-10 at 16.50.58.jpeg';
+import halaqahImg from '../../assets/halaqah.jpeg';
+import codingImg from '../../assets/kelas coding.jpeg';
+import beasiswaImg from '../../assets/uim.jpg';
+
+const programs = [
+  {
+    title: 'Dars Masyaikh',
+    desc: 'Program kajian intensif langsung bersama para masyaikh (ulama) di Masjid Nabawi dan masjid-masjid sekitar Madinah.',
+    icon: FaBookOpen,
+    image: darsImg,
+    color: 'from-primary-600 to-primary-400',
+    bgLight: 'bg-primary-500/10',
+    textColor: 'text-primary-400',
+    anim: { initial: { opacity: 0, x: -100, rotate: -10 }, enter: { opacity: 1, x: 0, rotate: 0 }, exit: { opacity: 0, x: -100, rotate: -10 } }
+  },
+  {
+    title: 'Halaqah Quran',
+    desc: 'Program tahfidz dan tahsin Al-Quran dengan metode talaqqi bersama muhafizh berpengalaman.',
+    icon: FaQuran,
+    image: halaqahImg,
+    color: 'from-gold-600 to-gold-400',
+    bgLight: 'bg-gold-500/10',
+    textColor: 'text-gold-400',
+    anim: { initial: { opacity: 0, scale: 0.6, filter: 'blur(4px)' }, enter: { opacity: 1, scale: 1, filter: 'blur(0px)' }, exit: { opacity: 0, scale: 0.6, filter: 'blur(4px)' } }
+  },
+  {
+    title: 'Coding & IoT',
+    desc: 'Program teknologi informasi meliputi web development, mobile app, IoT, dan artificial intelligence.',
+    icon: FaCode,
+    image: codingImg,
+    color: 'from-primary-700 to-primary-500',
+    bgLight: 'bg-primary-500/10',
+    textColor: 'text-primary-400',
+    anim: { initial: { opacity: 0, y: 80, skewX: -8 }, enter: { opacity: 1, y: 0, skewX: 0 }, exit: { opacity: 0, y: 80, skewX: -8 } }
+  },
+  {
+    title: 'Bimbingan Beasiswa',
+    desc: 'Pendampingan lengkap untuk mendaftar beasiswa di Universitas Islam Madinah dan universitas lainnya.',
+    icon: FaGraduationCap,
+    image: beasiswaImg,
+    color: 'from-gold-700 to-gold-500',
+    bgLight: 'bg-gold-500/10',
+    textColor: 'text-gold-400',
+    anim: { initial: { opacity: 0, x: 100, rotate: 10 }, enter: { opacity: 1, x: 0, rotate: 0 }, exit: { opacity: 0, x: -100, rotate: 10 } }
+  }
+];
 
 export default function ProgramSection() {
   const { t } = useTranslation();
 
-  const programs = [
-    {
-      title: 'Dars Masyaikh',
-      desc: 'Program kajian intensif langsung bersama para masyaikh (ulama) di Masjid Nabawi dan masjid-masjid sekitar Madinah.',
-      icon: FaBookOpen,
-      color: 'from-blue-600 to-blue-400',
-      bgLight: 'bg-blue-500/10',
-      textColor: 'text-blue-400'
-    },
-    {
-      title: 'Halaqah Quran',
-      desc: 'Program tahfidz dan tahsin Al-Quran dengan metode talaqqi bersama muhafizh berpengalaman.',
-      icon: FaQuran,
-      color: 'from-gold-600 to-gold-400',
-      bgLight: 'bg-gold-500/10',
-      textColor: 'text-gold-400'
-    },
-    {
-      title: 'Coding & IoT',
-      desc: 'Program teknologi informasi meliputi web development, mobile app, IoT, dan artificial intelligence.',
-      icon: FaCode,
-      color: 'from-primary-600 to-primary-400',
-      bgLight: 'bg-primary-500/10',
-      textColor: 'text-primary-400'
-    },
-    {
-      title: 'Bimbingan Beasiswa',
-      desc: 'Pendampingan lengkap untuk mendaftar beasiswa di Universitas Islam Madinah dan universitas lainnya.',
-      icon: FaGraduationCap,
-      color: 'from-purple-600 to-purple-400',
-      bgLight: 'bg-purple-500/10',
-      textColor: 'text-purple-400'
-    }
-  ];
-
   return (
-    <section className="py-24 bg-cream-100 relative overflow-hidden">
-      {/* Background Ornaments */}
+    <section className="py-16 md:py-20 lg:py-24 bg-cream-50 relative overflow-hidden">
+      <InteractiveBackground />
       <IslamicOrnament type="lantern" size={120} className="text-primary-500/5 top-20 right-10" />
       <IslamicOrnament type="crescent" size={200} className="text-gold-500/5 bottom-20 -left-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <ScrollReveal className="text-center mb-16">
-          <TextReveal text={t('programs.title')} className="section-title mb-4 justify-center" />
-          <p className="section-subtitle">{t('programs.subtitle')}</p>
-        </ScrollReveal>
+        <div className="text-center mb-16">
+          <SplitText
+            text={t('programs.title')}
+            className="section-title mb-4 justify-center"
+            tag="h2"
+            splitType="chars"
+            delay={0.05}
+            duration={0.9}
+            from={{ opacity: 0, scale: 0.5, y: -40 }}
+            to={{ opacity: 1, scale: 1, y: 0 }}
+          />
+          <SplitText
+            text={t('programs.subtitle')}
+            className="section-subtitle justify-center"
+            tag="p"
+            splitType="words"
+            delay={0.12}
+            duration={0.7}
+            from={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
+            to={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {programs.map((program, index) => (
-            <HoverCard key={index} delay={index * 0.1}>
-              <div className="h-full bg-cream-50 p-8 sm:p-10 relative overflow-hidden group-hover:bg-white transition-colors">
-                {/* Decorative Background */}
-                <IslamicOrnament type="star" size={150} className={`${program.textColor} opacity-5 group-hover:opacity-10 transition-opacity -right-10 -bottom-10`} />
-                <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${program.color} rounded-full blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
-                
-                <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-start">
-                  <div className={`w-16 h-16 rounded-2xl ${program.bgLight} flex items-center justify-center shrink-0`}>
-                    <program.icon className={`text-3xl ${program.textColor}`} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-primary-950 mb-3 font-display">{program.title}</h3>
-                    <p className="text-primary-700 leading-relaxed mb-6">{program.desc}</p>
-                    <Link to="/program" className={`inline-flex items-center gap-2 font-medium ${program.textColor} hover:opacity-80 transition-opacity`}>
-                      Detail Program <span>→</span>
-                    </Link>
+            <motion.div
+              key={index}
+              initial={program.anim.initial}
+              whileInView={program.anim.enter}
+              viewport={{ once: false, margin: '-50px' }}
+              transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+              <HoverCard delay={0}>
+                <div className="h-full bg-cream-50 p-8 sm:p-10 relative overflow-hidden group-hover:bg-white transition-colors">
+                  <IslamicOrnament type="star" size={150} className={`${program.textColor} opacity-5 group-hover:opacity-10 transition-opacity -right-10 -bottom-10`} />
+                  <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${program.color} rounded-full blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity duration-500`} />
+                  
+                  <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-start">
+                    <div className="w-full sm:w-32 h-24 rounded-xl overflow-hidden shrink-0">
+                      <img src={program.image} alt={program.title} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-primary-950 mb-3 font-display">{program.title}</h3>
+                      <p className="text-primary-700 leading-relaxed mb-6">{program.desc}</p>
+                      <Link to="/program" className={`inline-flex items-center gap-2 font-medium ${program.textColor} hover:opacity-80 transition-opacity`}>
+                        Detail Program <span>→</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </HoverCard>
+              </HoverCard>
+            </motion.div>
           ))}
         </div>
       </div>

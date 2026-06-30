@@ -10,6 +10,8 @@ class Payment extends Model
     protected $fillable = [
         'applicant_id',
         'jumlah',
+        'norek_pengirim',
+        'bank_pengirim',
         'status',
         'bukti',
     ];

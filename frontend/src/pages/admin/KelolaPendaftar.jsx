@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
+import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet } from 'react-icons/fa';
 import api from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function KelolaPendaftar() {
   const [applicants, setApplicants] = useState([]);
@@ -11,6 +12,7 @@ export default function KelolaPendaftar() {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -32,7 +34,6 @@ export default function KelolaPendaftar() {
   }, [search, statusFilter, page]);
 
   const updateStatus = async (id, newStatus) => {
-    if (!window.confirm(`Yakin ingin mengubah status menjadi ${newStatus}?`)) return;
     setIsUpdating(true);
     try {
       await api.put(`/applicants/${id}/status`, { status: newStatus });
@@ -47,8 +48,22 @@ export default function KelolaPendaftar() {
     }
   };
 
+  const allowPayment = async (id) => {
+    setIsUpdating(true);
+    try {
+      await api.put(`/applicants/${id}/allow-payment`);
+      fetchApplicants();
+      if (selectedApplicant?.id === id) {
+        setSelectedApplicant({ ...selectedApplicant, payment_allowed_at: new Date().toISOString() });
+      }
+    } catch (error) {
+      alert('Gagal mengizinkan pembayaran');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const deleteApplicant = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus pendaftar ini? Tindakan ini tidak dapat dibatalkan dan akan menghapus semua file terkait.')) return;
     try {
       await api.delete(`/applicants/${id}`);
       fetchApplicants();
@@ -99,6 +114,28 @@ export default function KelolaPendaftar() {
           </select>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => {
+          if (confirmAction?.type === 'delete') {
+            deleteApplicant(confirmAction.id);
+          } else if (confirmAction?.type === 'status') {
+            updateStatus(confirmAction.id, confirmAction.value);
+          } else if (confirmAction?.type === 'allow-payment') {
+            allowPayment(confirmAction.id);
+          }
+        }}
+        title={confirmAction?.type === 'delete' ? 'Hapus Pendaftar' : confirmAction?.type === 'allow-payment' ? 'Izinkan Pembayaran' : 'Ubah Status'}
+        message={confirmAction?.type === 'delete'
+          ? 'Yakin ingin menghapus pendaftar ini? Tindakan ini tidak dapat dibatalkan dan akan menghapus semua file terkait.'
+          : confirmAction?.type === 'allow-payment'
+          ? 'Izinkan pendaftar ini untuk mengirim bukti pembayaran?'
+          : `Yakin ingin mengubah status menjadi ${confirmAction?.value}?`}
+        confirmText={confirmAction?.type === 'delete' ? 'Ya, Hapus' : 'Ya, Izinkan'}
+        danger={confirmAction?.type === 'delete'}
+      />
 
       {/* Main Table Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -241,11 +278,31 @@ export default function KelolaPendaftar() {
               </div>
             </div>
 
+            {/* Payment Status */}
+            {selectedApplicant.payment_allowed_at ? (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-sm">
+                <p className="text-green-600 font-medium flex items-center gap-2">
+                  <FaCheck className="text-green-500" /> Pembayaran sudah diizinkan
+                </p>
+                <p className="text-green-500/70 text-xs mt-1">
+                  {new Date(selectedApplicant.payment_allowed_at).toLocaleString('id-ID')}
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmAction({ type: 'allow-payment', id: selectedApplicant.id })}
+                disabled={isUpdating}
+                className="w-full px-4 py-2 bg-green-500/10 text-green-600 hover:bg-green-500/20 border border-green-500/20 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <FaWallet /> Izinkan Pembayaran
+              </button>
+            )}
+
             {/* Actions */}
             <div className="pt-4 mt-4 border-t border-cream-200 grid grid-cols-2 gap-2">
               <select 
                 value={selectedApplicant.status}
-                onChange={(e) => updateStatus(selectedApplicant.id, e.target.value)}
+                onChange={(e) => setConfirmAction({ type: 'status', id: selectedApplicant.id, value: e.target.value })}
                 disabled={isUpdating}
                 className="col-span-2 input-field text-sm mb-2"
               >
@@ -256,7 +313,7 @@ export default function KelolaPendaftar() {
               </select>
               
               <button 
-                onClick={() => deleteApplicant(selectedApplicant.id)}
+                onClick={() => setConfirmAction({ type: 'delete', id: selectedApplicant.id })}
                 className="col-span-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <FaTrash /> Hapus Data

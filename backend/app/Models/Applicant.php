@@ -18,10 +18,12 @@ class Applicant extends Model
         'foto',
         'motivasi',
         'status',
+        'payment_allowed_at',
     ];
 
     protected $casts = [
         'usia' => 'integer',
+        'payment_allowed_at' => 'datetime',
     ];
 
     public function payments(): HasMany

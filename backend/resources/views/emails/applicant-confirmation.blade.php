@@ -34,7 +34,12 @@
                 <p><strong>Status:</strong> {{ ucfirst($applicant->status) }}</p>
             </div>
 
-            <p>Tim kami akan meninjau dokumen Anda dan menghubungi Anda melalui email atau WhatsApp dalam 3-5 hari kerja.</p>
+            <p>Langkah selanjutnya:</p>
+            <ol style="margin: 15px 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                <li><strong>Hubungi admin</strong> via WhatsApp di <a href="https://wa.me/62817786805" style="color: #2d8a4e;">+62 817-7868-05</a> untuk konfirmasi pendaftaran Anda.</li>
+                <li>Admin akan memverifikasi data dan dokumen Anda.</li>
+                <li>Setelah disetujui, Anda dapat melanjutkan pembayaran DP di: <a href="{{ config('app.url') }}/lanjutkan-pembayaran" style="color: #2d8a4e;">{{ config('app.url') }}/lanjutkan-pembayaran</a></li>
+            </ol>
             <p>Jazakallahu khairan atas kepercayaan Anda.</p>
 
             <p style="margin-top: 30px;">Wassalamu'alaikum,<br><strong>Tim Markaz IT Madinah</strong></p>

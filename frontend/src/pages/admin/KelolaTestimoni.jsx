@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaTrash, FaSpinner, FaStar } from 'react-icons/fa';
 import api from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function KelolaTestimoni() {
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const [formData, setFormData] = useState({ nama: '', asal: '', isi: '', rating: 5 });
 
   const fetchTestimonials = async () => {
@@ -35,7 +37,6 @@ export default function KelolaTestimoni() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin menghapus testimoni?')) return;
     try {
       await api.delete(`/testimonials/${id}`);
       fetchTestimonials();
@@ -66,12 +67,21 @@ export default function KelolaTestimoni() {
                   <p className="font-bold text-primary-950 text-sm">{t.nama}</p>
                   <p className="text-xs text-primary-600">{t.asal}</p>
                 </div>
-                <button onClick={() => handleDelete(t.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded"><FaTrash /></button>
+                <button onClick={() => setConfirmDelete(t.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded"><FaTrash /></button>
               </div>
             </div>
           ))
         }
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete)}
+        title="Hapus Testimoni"
+        message="Yakin menghapus testimoni?"
+        danger
+      />
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

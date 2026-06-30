@@ -19,8 +19,9 @@
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #FDFBF7; /* cream-50 */
-    color: #115e59; /* primary-800 */
+    background-color: #FDFBF7;
+    color: #004665;
+    overflow-x: hidden;
   }
 
   /* RTL Support for Arabic */
@@ -100,7 +101,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0f766e;
+  background: #017EB7;
 }
 
 /* Lightbox overrides */

@@ -12,6 +12,10 @@ export default function AdminLogin() {
   const { login, loading, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
+    document.documentElement.dir = 'ltr';
+  }, []);
+
+  useEffect(() => {
     // Already logged in? Redirect to dashboard
     if (isAuthenticated) {
       navigate('/admin');

@@ -8,9 +8,11 @@ import Biaya from './pages/public/Biaya';
 import KehidupanMadinah from './pages/public/KehidupanMadinah';
 import Galeri from './pages/public/Galeri';
 import Pendaftaran from './pages/public/Pendaftaran';
+import LanjutkanPembayaran from './pages/public/LanjutkanPembayaran';
 import TentangKami from './pages/public/TentangKami';
 import BlogList from './pages/public/BlogList';
 import BlogDetail from './pages/public/BlogDetail';
+import NotFound from './pages/public/NotFound';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -38,9 +40,11 @@ function App() {
         <Route path="/kehidupan-madinah" element={<KehidupanMadinah />} />
         <Route path="/galeri" element={<Galeri />} />
         <Route path="/pendaftaran" element={<Pendaftaran />} />
+        <Route path="/lanjutkan-pembayaran" element={<LanjutkanPembayaran />} />
         <Route path="/tentang-kami" element={<TentangKami />} />
         <Route path="/blog" element={<BlogList />} />
         <Route path="/blog/:slug" element={<BlogDetail />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
 
       {/* Admin Routes */}

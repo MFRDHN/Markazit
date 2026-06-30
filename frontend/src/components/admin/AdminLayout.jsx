@@ -6,6 +6,7 @@ import {
   FaHome, FaUsers, FaBook, FaImages, 
   FaQuoteLeft, FaFileAlt, FaSignOutAlt, FaBars, FaTimes 
 } from 'react-icons/fa';
+import logomarkazit from '../../assets/Logomarkazit.png';
 
 export default function AdminLayout() {
   const { isAuthenticated, user, logout, checkAuth } = useAuthStore();
@@ -20,6 +21,10 @@ export default function AdminLayout() {
     };
     initAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    document.documentElement.dir = 'ltr';
+  }, []);
 
   // Close sidebar on route change in mobile
   useEffect(() => {
@@ -58,26 +63,33 @@ export default function AdminLayout() {
         {/* Mobile Header */}
         <div className="md:hidden bg-cream-100 border-b border-cream-200 flex items-center justify-between p-4 z-20">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-primary-950 font-bold text-sm">M</div>
+            <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center">
+              <img src={logomarkazit} alt="Markaz IT" className="w-full h-full object-contain" />
+            </div>
             <span className="font-bold text-primary-950">Admin Panel</span>
           </div>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-primary-950 p-2">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? 'Tutup sidebar' : 'Buka sidebar'}
+            aria-expanded={sidebarOpen}
+            aria-controls="admin-sidebar"
+            className="text-primary-950 p-2"
+          >
             {sidebarOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
 
         {/* Sidebar */}
-        <aside className={`
+        <aside
+          id="admin-sidebar"
+          aria-label="Sidebar navigasi admin"
+          className={`
           fixed md:sticky top-0 left-0 z-40 w-64 h-screen bg-cream-100 border-r border-cream-200 flex flex-col transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}>
-          <div className="p-6 hidden md:flex items-center gap-3 border-b border-cream-200">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-primary-950 font-bold text-lg shadow-lg shadow-primary-500/20">
-              M
-            </div>
-            <div>
-              <span className="text-lg font-bold text-primary-950 block">Markaz IT</span>
-              <span className="text-xs text-primary-600">Admin Panel</span>
+          <div className="p-6 flex items-center justify-center border-b border-cream-200">
+            <div className="w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden">
+              <img src={logomarkazit} alt="Markaz IT" className="w-full h-full object-contain" />
             </div>
           </div>
 
@@ -99,6 +111,7 @@ export default function AdminLayout() {
               <Link
                 key={item.path}
                 to={item.path}
+                aria-current={location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)) ? 'page' : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path))
                     ? 'bg-primary-500/10 text-primary-400'
@@ -134,6 +147,7 @@ export default function AdminLayout() {
           <div 
             className="fixed inset-0 bg-black/50 z-30 md:hidden" 
             onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
           />
         )}
 

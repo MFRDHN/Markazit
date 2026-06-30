@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaTrash, FaSpinner } from 'react-icons/fa';
 import api from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 export default function KelolaGaleri() {
   const [galleries, setGalleries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   
   const [formData, setFormData] = useState({ judul: '', kategori: '', foto: null });
 
@@ -47,7 +49,6 @@ export default function KelolaGaleri() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus foto ini?')) return;
     try {
       await api.delete(`/gallery/${id}`);
       fetchGalleries();
@@ -82,7 +83,7 @@ export default function KelolaGaleri() {
                 <p className="text-xs text-primary-600">{item.kategori}</p>
               </div>
               <button 
-                onClick={() => handleDelete(item.id)}
+                onClick={() => setConfirmDelete(item.id)}
                 className="absolute top-4 right-4 w-8 h-8 bg-red-500 text-primary-950 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
               >
                 <FaTrash size={12} />
@@ -91,6 +92,15 @@ export default function KelolaGaleri() {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete)}
+        title="Hapus Foto"
+        message="Yakin ingin menghapus foto ini?"
+        danger
+      />
 
       {/* Modal */}
       {isModalOpen && (

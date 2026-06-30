@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 
 import { ScrollReveal } from '../common/ScrollReveal';
-import { TextReveal } from '../common/TextReveal';
+import SplitText from '../common/SplitText';
 import masjidNabawiVideo from '../../assets/masjid_nabawi.mp4';
 
 export default function HeroSection() {
@@ -22,22 +21,26 @@ export default function HeroSection() {
         >
           <source src={masjidNabawiVideo} type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-islamic-pattern opacity-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-16">
         <ScrollReveal direction="up">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border-white/20 text-green-600 text-sm font-medium mb-8">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border-white/20 text-primary-950 text-sm font-medium mb-8">
+            <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
             Pendaftaran Gelombang 1 Dibuka
           </div>
         </ScrollReveal>
 
         <div className="mb-6">
-          <TextReveal 
-            text={t('hero.tagline')} 
-            className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-white leading-tight text-balance justify-center drop-shadow-md" 
+          <SplitText
+            text={t('hero.tagline')}
+            className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-white leading-tight text-balance drop-shadow-md justify-center"
+            tag="h1"
+            splitType="words"
+            delay={0.08}
+            from={{ opacity: 0, y: 60, rotateX: -90 }}
+            to={{ opacity: 1, y: 0, rotateX: 0 }}
           />
         </div>
 
@@ -49,35 +52,14 @@ export default function HeroSection() {
 
         <ScrollReveal direction="up" delay={0.6}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/pendaftaran" className="btn-primary w-full sm:w-auto text-lg group">
-              <span className="flex items-center justify-center gap-2">
-                {t('hero.cta_register')}
-                <motion.span
-                  className="inline-block"
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </span>
+            <Link to="/pendaftaran" className="btn-primary w-full sm:w-auto text-lg">
+              {t('hero.cta_register')}
             </Link>
 
           </div>
         </ScrollReveal>
       </div>
 
-      {/* Decorative Elements Removed */}
-
-      {/* Scroll Indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-      >
-        <div className="w-6 h-10 border-2 border-primary-900/30 rounded-full flex justify-center p-1">
-          <div className="w-1.5 h-1.5 bg-primary-900 rounded-full" />
-        </div>
-      </motion.div>
     </section>
   );
 }

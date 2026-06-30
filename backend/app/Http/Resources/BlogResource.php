@@ -13,7 +13,7 @@ class BlogResource extends JsonResource
             'id' => $this->id,
             'judul' => $this->judul,
             'slug' => $this->slug,
-            'thumbnail' => $this->thumbnail ? asset('storage/' . $this->thumbnail) : null,
+            'thumbnail' => $this->thumbnail ? url('/s.php?f=' . $this->thumbnail) : null,
             'konten' => $this->konten,
             'kategori' => $this->kategori,
             'meta_desc' => $this->meta_desc,

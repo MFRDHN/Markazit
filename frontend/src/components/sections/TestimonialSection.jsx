@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaStar, FaQuoteLeft } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { ScrollReveal } from '../common/ScrollReveal';
+import SplitText from '../common/SplitText';
+import InteractiveBackground from '../common/InteractiveBackground';
 import api from '../../services/api';
 
 export default function TestimonialSection() {
   const { t } = useTranslation();
   const [testimonials, setTestimonials] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const defaultTestimonials = [
@@ -18,6 +20,7 @@ export default function TestimonialSection() {
 
   useEffect(() => {
     const fetchTestimonials = async () => {
+      setLoading(true);
       try {
         const response = await api.get('/testimonials');
         if (response.data.data.length > 0) {
@@ -28,11 +31,11 @@ export default function TestimonialSection() {
       } catch (error) {
         setTestimonials(defaultTestimonials);
       }
+      setLoading(false);
     };
     fetchTestimonials();
   }, []);
 
-  // Auto scroll logic
   useEffect(() => {
     if (testimonials.length <= 1) return;
     const interval = setInterval(() => {
@@ -41,21 +44,40 @@ export default function TestimonialSection() {
     return () => clearInterval(interval);
   }, [testimonials.length]);
 
+  if (loading) return null;
   if (testimonials.length === 0) return null;
 
   return (
-    <section className="py-24 bg-cream-50 relative overflow-hidden">
-      {/* Decorative background */}
+    <section className="py-16 md:py-20 lg:py-24 bg-cream-50 relative overflow-hidden">
+      <InteractiveBackground />
       <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-primary-900/10 to-transparent pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <ScrollReveal className="text-center mb-16">
-          <h2 className="section-title mb-4">{t('testimonials.title')}</h2>
-          <p className="section-subtitle">{t('testimonials.subtitle')}</p>
-        </ScrollReveal>
+        <div className="text-center mb-16">
+          <SplitText
+            text={t('testimonials.title')}
+            className="section-title mb-4 justify-center"
+            tag="h2"
+            splitType="chars"
+            delay={0.07}
+            duration={0.6}
+            from={{ opacity: 0, filter: 'blur(8px)', y: 20 }}
+            to={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+          />
+          <SplitText
+            text={t('testimonials.subtitle')}
+            className="section-subtitle justify-center"
+            tag="p"
+            splitType="words"
+            delay={0.15}
+            duration={0.8}
+            from={{ opacity: 0, rotate: -5, y: 20 }}
+            to={{ opacity: 1, rotate: 0, y: 0 }}
+          />
+        </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="relative h-[300px] md:h-[250px]">
+          <div className="relative min-h-[320px] md:min-h-[260px]">
             {testimonials.map((item, index) => (
               <motion.div
                 key={item.id}
@@ -94,6 +116,7 @@ export default function TestimonialSection() {
                   index === activeIndex ? 'bg-primary-500 w-8' : 'bg-cream-300 hover:bg-dark-400'
                 }`}
                 aria-label={`Go to testimonial ${index + 1}`}
+                aria-current={index === activeIndex ? 'true' : undefined}
               />
             ))}
           </div>

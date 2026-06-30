@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEOHelmet from '../../components/common/SEOHelmet';
 import api from '../../services/api';
 
 export default function BlogDetail() {
+  const { t, i18n } = useTranslation();
   const { slug } = useParams();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,8 @@ export default function BlogDetail() {
     fetchBlog();
   }, [slug]);
 
+  const dateLocale = i18n.language === 'ar' ? 'ar-SA' : i18n.language === 'en' ? 'en-US' : 'id-ID';
+
   if (loading) {
     return (
       <div className="min-h-screen pt-32 pb-24 flex items-center justify-center bg-cream-50">
@@ -35,8 +39,8 @@ export default function BlogDetail() {
       <div className="min-h-screen pt-32 pb-24 flex items-center justify-center bg-cream-50 text-primary-950">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">404</h1>
-          <p className="text-primary-700 mb-6">Artikel tidak ditemukan.</p>
-          <Link to="/blog" className="btn-primary">Kembali ke Blog</Link>
+          <p className="text-primary-700 mb-6">{t('blog.not_found')}</p>
+          <Link to="/blog" className="btn-primary">{t('blog.kembali_btn')}</Link>
         </div>
       </div>
     );
@@ -44,15 +48,37 @@ export default function BlogDetail() {
 
   return (
     <>
-      <Helmet>
-        <title>{blog.judul} - Markaz IT Madinah</title>
-        <meta name="description" content={blog.meta_desc || blog.judul} />
-      </Helmet>
+      <SEOHelmet
+        title={blog.judul}
+        description={blog.meta_desc || blog.judul}
+        canonicalPath={`/blog/${blog.slug}`}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: blog.judul,
+          description: blog.meta_desc || blog.judul,
+          image: blog.thumbnail,
+          datePublished: blog.created_at,
+          dateModified: blog.updated_at,
+          author: {
+            '@type': 'Organization',
+            name: 'Markaz IT Madinah',
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'Markaz IT Madinah',
+          },
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `${window.location.origin}/blog/${blog.slug}`,
+          },
+        }}
+      />
 
-      <section className="pt-32 pb-24 bg-cream-100 min-h-screen">
+      <section className="pt-32 pb-24 bg-cream-50 min-h-screen">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to="/blog" className="text-primary-400 hover:text-primary-300 text-sm font-medium mb-8 inline-block">
-            ← Kembali ke Blog
+            {t('blog.kembali')}
           </Link>
           
           <div className="mb-8">
@@ -65,13 +91,13 @@ export default function BlogDetail() {
               {blog.judul}
             </h1>
             <p className="text-primary-600 text-sm">
-              Dipublikasikan pada {new Date(blog.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {t('blog.published')}{new Date(blog.created_at).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
 
           {blog.thumbnail && (
             <div className="aspect-[21/9] rounded-3xl overflow-hidden mb-12 bg-white">
-              <img src={blog.thumbnail} alt={blog.judul} className="w-full h-full object-cover" />
+              <img src={blog.thumbnail} alt={blog.judul} loading="lazy" className="w-full h-full object-cover" />
             </div>
           )}
 

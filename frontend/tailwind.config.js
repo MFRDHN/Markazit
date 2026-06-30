@@ -8,29 +8,29 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6', // Tosca light
-          600: '#0d9488',
-          700: '#0f766e', // Tosca dark
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
+          50: '#eef7fd',
+          100: '#d5ecfa',
+          200: '#b3ddf5',
+          300: '#7fc8ef',
+          400: '#4aafe6',
+          500: '#017EB7',
+          600: '#016ea3',
+          700: '#015a87',
+          800: '#004665',
+          900: '#003a52',
+          950: '#002b3d',
         },
         gold: {
-          50: '#fef9eb',
-          100: '#fdf0c8',
-          200: '#fbe08d',
-          300: '#f9cc52',
-          400: '#f7b731',
-          500: '#e8a317',
-          600: '#cc7e0f',
-          700: '#a95b10',
-          800: '#8a4814',
-          900: '#723b14',
+          50: '#fcf8ef',
+          100: '#f7edd7',
+          200: '#efdbb0',
+          300: '#e5c784',
+          400: '#D8B364',
+          500: '#c9a456',
+          600: '#BA9A55',
+          700: '#9d7e44',
+          800: '#826837',
+          900: '#6b552d',
         },
         dark: {
           50: '#f6f6f7',
@@ -63,6 +63,7 @@ export default {
         'slide-up': 'slideUp 0.6s ease-out',
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
+        'gradient-x': 'gradientX 3s ease infinite',
       },
       keyframes: {
         fadeIn: {
@@ -78,13 +79,17 @@ export default {
           '50%': { transform: 'translateY(-10px)' },
         },
         glow: {
-          '0%': { boxShadow: '0 0 20px rgba(45,138,78,0.3)' },
-          '100%': { boxShadow: '0 0 40px rgba(45,138,78,0.6)' },
+          '0%': { boxShadow: '0 0 20px rgba(1,126,183,0.3)' },
+          '100%': { boxShadow: '0 0 40px rgba(1,126,183,0.6)' },
+        },
+        gradientX: {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
         },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'islamic-pattern': "url('https://www.transparenttextures.com/patterns/arabesque.png')",
+
       },
     },
   },
