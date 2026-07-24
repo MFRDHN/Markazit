@@ -138,7 +138,10 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            <Link to="/pendaftaran" className="btn-primary text-sm !px-6 !py-2.5">
+            <Link to="/login" className="btn-outline text-sm !px-5 !py-2.5">
+              {t('nav.login')}
+            </Link>
+            <Link to="/pendaftaran" className="btn-primary text-sm !px-5 !py-2.5">
               {t('nav.register')}
             </Link>
           </div>
@@ -216,6 +219,9 @@ export default function Navbar() {
                     </button>
                   ))}
                 </div>
+                <Link to="/login" className="btn-outline block text-center mb-3">
+                  {t('nav.login')}
+                </Link>
                 <Link to="/pendaftaran" className="btn-primary block text-center">
                   {t('nav.register')}
                 </Link>

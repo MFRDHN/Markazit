@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SEOHelmet from '../../components/common/SEOHelmet';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { FaSpinner } from 'react-icons/fa';
+import { FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import api from '../../services/api';
 import { TextReveal } from '../../components/common/TextReveal';
 import { ScrollReveal } from '../../components/common/ScrollReveal';
@@ -18,6 +18,7 @@ export default function Pendaftaran() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const schema = useMemo(() => z.object({
     nama: z.string().min(3, t('register.zod_nama')),
@@ -69,14 +70,8 @@ export default function Pendaftaran() {
         formData.append('dokumen_paspor', data.dokumen_paspor[0]);
       }
 
-      const res = await api.post('/applicants', formData);
-
-      // Auto-login: save token + redirect to dashboard
-      if (res.data.token) {
-        localStorage.setItem('user_token', res.data.token);
-        localStorage.setItem('user_data', JSON.stringify(res.data.data || {}));
-      }
-      navigate('/dashboard');
+      await api.post('/applicants', formData);
+      setIsSuccess(true);
     } catch (error) {
       const msg = error.response?.data?.message
         || (error.response?.data?.errors ? Object.values(error.response.data.errors).flat().join('\n') : null)
@@ -225,6 +220,18 @@ export default function Pendaftaran() {
               </div>
             </form>
           </div>
+
+          {/* Success state */}
+          {isSuccess && (
+            <div className="glass-card p-8 md:p-10 text-center">
+              <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-primary-950 mb-2">{t('register.success')}</h3>
+              <p className="text-primary-700 mb-6">{t('register.success_intro')}</p>
+              <Link to="/login" className="btn-primary inline-block">
+                Masuk ke Akun
+              </Link>
+            </div>
+          )}
         </div>
       </section>
     </>

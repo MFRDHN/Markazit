@@ -86,21 +86,20 @@ class ApplicantController extends Controller
 
             $applicant = Applicant::create($validated);
 
+            DB::commit();
+
             // Generate token
             $token = $user->createToken('applicant-token')->plainTextToken;
 
-            // Send confirmation email
-            try {
-                Mail::to($applicant->email)->queue(new ApplicantConfirmation($applicant));
-            } catch (\Exception $e) {
-                Log::error('Failed to queue confirmation email: ' . $e->getMessage());
-            }
-
-            DB::commit();
+            // ponytail: email disabled until SMTP is ready
+            // try {
+            //     Mail::to($applicant->email)->queue(new ApplicantConfirmation($applicant));
+            // } catch (\Exception $e) {
+            //     Log::error('Failed to queue confirmation email: ' . $e->getMessage());
+            // }
 
             return response()->json([
                 'message' => 'Pendaftaran berhasil!',
-                'data' => new ApplicantResource($applicant),
                 'token' => $token,
             ]);
 
