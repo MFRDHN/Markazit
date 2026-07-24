@@ -76,14 +76,12 @@ export default function LanjutkanPembayaran() {
     try {
       const formData = new FormData();
       formData.append('applicant_id', paymentData.applicant_id);
-      formData.append('jumlah', '2500000');
+      formData.append('jumlah', '47500000');
       formData.append('norek_pengirim', norekPengirim);
       formData.append('bank_pengirim', bankPengirim);
       formData.append('bukti', bukti);
 
-      await api.post('/payments', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/payments', formData);
 
       setIsSuccess(true);
     } catch (err) {
@@ -194,20 +192,20 @@ export default function LanjutkanPembayaran() {
                   <div className="bg-cream-100 rounded-lg p-4 space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-primary-600">{t('pembayaran.bank_label')}</span>
-                      <span className="font-bold text-primary-950">{t('pembayaran.bank_name')}</span>
+                      <span className="font-bold text-primary-950">BANK SYARIAH INDONESIA (BSI)</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-primary-600">{t('pembayaran.rekening_label')}</span>
-                      <span className="font-bold text-primary-950 text-base tracking-wider">7221 2345 6789</span>
+                      <span className="font-bold text-primary-950 text-base tracking-wider">7364 9901 83</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-primary-600">{t('pembayaran.atas_nama_label')}</span>
-                      <span className="font-bold text-primary-950">{t('pembayaran.atas_nama_value')}</span>
+                      <span className="font-bold text-primary-950">PT MARKAZ IT INTERNATIONAL</span>
                     </div>
                     <hr className="border-cream-300 my-2" />
                     <div className="flex justify-between">
-                      <span className="text-primary-600">{t('pembayaran.jumlah_dp_label')}</span>
-                      <span className="font-bold text-gold-600 text-lg">Rp 2.500.000</span>
+                      <span className="text-primary-600">Total Pembayaran</span>
+                      <span className="font-bold text-gold-600 text-lg">Rp 47.500.000</span>
                     </div>
                   </div>
                 </div>

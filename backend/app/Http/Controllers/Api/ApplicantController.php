@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ApplicantResource;
 use App\Mail\ApplicantConfirmation;
 use App\Models\Applicant;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ApplicantController extends Controller
 {
@@ -19,12 +24,10 @@ class ApplicantController extends Controller
     {
         $query = Applicant::with('payments')->latest();
 
-        // Filter by status
         if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
-        // Search by name or email
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -39,15 +42,16 @@ class ApplicantController extends Controller
     }
 
     /**
-     * Store a newly created applicant (public).
+     * Store a newly created applicant (public). Creates user account + returns token.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'usia' => 'required|integer|min:15|max:45',
-            'no_hp' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
+            'no_hp' => ['required', 'string', 'max:20', Rule::unique('applicants', 'no_hp')],
+            'email' => ['required', 'email', 'max:255', Rule::unique('applicants', 'email')],
+            'password' => 'required|string|min:6',
             'dokumen_ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'dokumen_kk' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'dokumen_paspor' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -55,25 +59,145 @@ class ApplicantController extends Controller
             'motivasi' => 'nullable|string',
         ]);
 
-        // Handle file uploads
-        $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
-        foreach ($fileFields as $field) {
-            if ($request->hasFile($field)) {
-                $validated[$field] = $request->file($field)->store('applicants/' . $field, 'public');
-            }
-        }
+        $uploadedFiles = [];
 
-        $applicant = Applicant::create($validated);
-
-        // Send confirmation email
         try {
-            Mail::to($applicant->email)->queue(new ApplicantConfirmation($applicant));
+            DB::beginTransaction();
+
+            // Create user account
+            $user = User::create([
+                'name' => $validated['nama'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'applicant',
+            ]);
+            $validated['user_id'] = $user->id;
+            unset($validated['password']);
+
+            // Handle file uploads
+            $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    $path = $request->file($field)->store('applicants/' . $field, 'public');
+                    $validated[$field] = $path;
+                    $uploadedFiles[] = $path;
+                }
+            }
+
+            $applicant = Applicant::create($validated);
+
+            // Generate token
+            $token = $user->createToken('applicant-token')->plainTextToken;
+
+            // Send confirmation email
+            try {
+                Mail::to($applicant->email)->queue(new ApplicantConfirmation($applicant));
+            } catch (\Exception $e) {
+                Log::error('Failed to queue confirmation email: ' . $e->getMessage());
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Pendaftaran berhasil!',
+                'data' => new ApplicantResource($applicant),
+                'token' => $token,
+            ]);
+
         } catch (\Exception $e) {
-            // Log error but don't fail the registration
-            \Log::error('Failed to send confirmation email: ' . $e->getMessage());
+            DB::rollBack();
+
+            foreach ($uploadedFiles as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            Log::error('Applicant registration failed: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Gagal mendaftar. Silakan coba lagi.',
+            ], 422);
+        }
+    }
+
+    /**
+     * Show own applicant data (authenticated user).
+     */
+    public function showOwn(Request $request)
+    {
+        $applicant = $request->user()->applicant;
+        if (!$applicant) {
+            return response()->json(['message' => 'Data tidak ditemukan.'], 404);
+        }
+        return new ApplicantResource($applicant->load('payments'));
+    }
+
+    /**
+     * Update own applicant data (authenticated user).
+     */
+    public function updateOwn(Request $request)
+    {
+        $user = $request->user();
+        $applicant = $user->applicant;
+
+        if (!$applicant) {
+            return response()->json(['message' => 'Data pendaftar tidak ditemukan.'], 404);
         }
 
-        return new ApplicantResource($applicant);
+        $validated = $request->validate([
+            'nama' => 'sometimes|required|string|max:255',
+            'usia' => 'sometimes|required|integer|min:15|max:45',
+            'no_hp' => ['sometimes', 'required', 'string', 'max:20', Rule::unique('applicants', 'no_hp')->ignore($applicant->id)],
+            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('applicants', 'email')->ignore($applicant->id)],
+            'motivasi' => 'nullable|string',
+            'dokumen_ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'dokumen_kk' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'dokumen_paspor' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    // Delete old file
+                    if ($applicant->$field) {
+                        Storage::disk('public')->delete($applicant->$field);
+                    }
+                    $validated[$field] = $request->file($field)->store('applicants/' . $field, 'public');
+                }
+            }
+
+            $applicant->update($validated);
+
+            DB::commit();
+
+            return new ApplicantResource($applicant);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Applicant update failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal mengupdate data.'], 500);
+        }
+    }
+
+    /**
+     * Download applicant file (admin only).
+     */
+    public function downloadFile(Applicant $applicant, string $field)
+    {
+        $allowed = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
+        if (!in_array($field, $allowed) || !$applicant->$field) {
+            abort(404);
+        }
+
+        $path = storage_path('app/public/' . $applicant->$field);
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->download($path, $field . '_' . $applicant->nama . '.' . pathinfo($path, PATHINFO_EXTENSION));
     }
 
     /**

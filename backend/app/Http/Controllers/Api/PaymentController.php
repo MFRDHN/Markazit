@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
+use App\Models\Applicant;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
@@ -27,7 +30,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Store a new payment (public - for DP submission).
+     * Store a new payment (public).
      */
     public function store(Request $request)
     {
@@ -39,13 +42,46 @@ class PaymentController extends Controller
             'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        if ($request->hasFile('bukti')) {
-            $validated['bukti'] = $request->file('bukti')->store('payments', 'public');
+        // Verify applicant is allowed to pay
+        $applicant = Applicant::where('id', $validated['applicant_id'])
+            ->whereNotNull('payment_allowed_at')
+            ->first();
+
+        if (!$applicant) {
+            return response()->json([
+                'message' => 'Pembayaran belum diizinkan. Silakan hubungi admin.',
+            ], 403);
         }
 
-        $payment = Payment::create($validated);
+        $buktiPath = null;
 
-        return new PaymentResource($payment);
+        try {
+            DB::beginTransaction();
+
+            if ($request->hasFile('bukti')) {
+                $buktiPath = $request->file('bukti')->store('payments', 'public');
+                $validated['bukti'] = $buktiPath;
+            }
+
+            $payment = Payment::create($validated);
+
+            DB::commit();
+
+            return new PaymentResource($payment);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($buktiPath) {
+                Storage::disk('public')->delete($buktiPath);
+            }
+
+            Log::error('Payment store failed: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Gagal menyimpan pembayaran. Silakan coba lagi.',
+            ], 500);
+        }
     }
 
     /**
@@ -68,5 +104,22 @@ class PaymentController extends Controller
     public function show(Payment $payment)
     {
         return new PaymentResource($payment->load('applicant'));
+    }
+
+    /**
+     * Get own payments (authenticated user).
+     */
+    public function myPayments(Request $request)
+    {
+        $applicant = $request->user()->applicant;
+        if (!$applicant) {
+            return response()->json(['data' => []]);
+        }
+
+        $payments = Payment::where('applicant_id', $applicant->id)
+            ->latest()
+            ->paginate($request->get('per_page', 20));
+
+        return PaymentResource::collection($payments);
     }
 }

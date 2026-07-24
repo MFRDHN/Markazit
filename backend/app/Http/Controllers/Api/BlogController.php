@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BlogResource;
 use App\Models\Blog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -53,13 +55,40 @@ class BlogController extends Controller
             $validated['slug'] = Str::slug($validated['judul']);
         }
 
-        if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('blogs', 'public');
+        $thumbPath = null;
+
+        try {
+            DB::beginTransaction();
+
+            if ($request->hasFile('thumbnail')) {
+                $thumbPath = $request->file('thumbnail')->store('blogs', 'public');
+                $validated['thumbnail'] = $thumbPath;
+            }
+
+            // Handle duplicate slug
+            $baseSlug = $validated['slug'];
+            $counter = 1;
+            while (Blog::where('slug', $validated['slug'])->exists()) {
+                $validated['slug'] = $baseSlug . '-' . $counter++;
+            }
+
+            $blog = Blog::create($validated);
+
+            DB::commit();
+
+            return new BlogResource($blog);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($thumbPath) {
+                Storage::disk('public')->delete($thumbPath);
+            }
+
+            Log::error('Blog store failed: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Gagal menyimpan artikel.'], 500);
         }
-
-        $blog = Blog::create($validated);
-
-        return new BlogResource($blog);
     }
 
     /**
@@ -84,16 +113,34 @@ class BlogController extends Controller
             'meta_desc' => 'nullable|string|max:255',
         ]);
 
-        if ($request->hasFile('thumbnail')) {
-            if ($blog->thumbnail) {
-                Storage::disk('public')->delete($blog->thumbnail);
+        $oldThumb = null;
+
+        try {
+            DB::beginTransaction();
+
+            if ($request->hasFile('thumbnail')) {
+                $oldThumb = $blog->thumbnail;
+                $validated['thumbnail'] = $request->file('thumbnail')->store('blogs', 'public');
             }
-            $validated['thumbnail'] = $request->file('thumbnail')->store('blogs', 'public');
+
+            $blog->update($validated);
+
+            // Delete old file after successful update
+            if ($oldThumb) {
+                Storage::disk('public')->delete($oldThumb);
+            }
+
+            DB::commit();
+
+            return new BlogResource($blog);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Blog update failed: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Gagal mengupdate artikel.'], 500);
         }
-
-        $blog->update($validated);
-
-        return new BlogResource($blog);
     }
 
     /**
@@ -115,7 +162,7 @@ class BlogController extends Controller
      */
     public function categories()
     {
-        $categories = Blog::distinct()->pluck('kategori')->filter()->values();
+        $categories = Blog::whereNotNull('kategori')->distinct()->pluck('kategori');
         return response()->json(['data' => $categories]);
     }
 }

@@ -1,5 +1,8 @@
 import { motion } from 'framer-motion';
 
+// ponytail: replaced spring with simple ease — spring re-calculates per frame
+// per word, 8 pages × ~10 words = 80 spring instances on page load. Unnecessary.
+
 export function TextReveal({ text, className = "", delay = 0 }) {
   const words = text.split(" ");
   
@@ -7,24 +10,13 @@ export function TextReveal({ text, className = "", delay = 0 }) {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: delay },
+      transition: { staggerChildren: 0.06, delayChildren: delay },
     },
   };
 
   const child = {
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        damping: 12,
-        stiffness: 100,
-      },
-    },
-    hidden: {
-      opacity: 0,
-      y: 20,
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+    hidden: { opacity: 0, y: 20 },
   };
 
   return (

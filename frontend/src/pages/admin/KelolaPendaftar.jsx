@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet } from 'react-icons/fa';
+import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet, FaDownload } from 'react-icons/fa';
 import api from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '');
 
 export default function KelolaPendaftar() {
   const [applicants, setApplicants] = useState([]);
@@ -252,19 +254,16 @@ export default function KelolaPendaftar() {
                 <h5 className="font-bold text-primary-950 text-sm mb-3">Dokumen Lampiran</h5>
                 <div className="space-y-2">
                   {selectedApplicant.dokumen_ktp && (
-                    <a href={selectedApplicant.dokumen_ktp} target="_blank" rel="noreferrer" className="block w-full text-left px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-400 transition-colors">
-                      📄 Lihat KTP
-                    </a>
+                    <DocLink label="KTP" path={selectedApplicant.dokumen_ktp} applicantId={selectedApplicant.id} />
                   )}
                   {selectedApplicant.dokumen_kk && (
-                    <a href={selectedApplicant.dokumen_kk} target="_blank" rel="noreferrer" className="block w-full text-left px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-400 transition-colors">
-                      📄 Lihat Kartu Keluarga
-                    </a>
+                    <DocLink label="Kartu Keluarga" path={selectedApplicant.dokumen_kk} applicantId={selectedApplicant.id} />
                   )}
                   {selectedApplicant.dokumen_paspor && (
-                    <a href={selectedApplicant.dokumen_paspor} target="_blank" rel="noreferrer" className="block w-full text-left px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-400 transition-colors">
-                      📄 Lihat Paspor
-                    </a>
+                    <DocLink label="Paspor" path={selectedApplicant.dokumen_paspor} applicantId={selectedApplicant.id} />
+                  )}
+                  {selectedApplicant.foto && (
+                    <DocLink label="Foto" path={selectedApplicant.foto} applicantId={selectedApplicant.id} />
                   )}
                 </div>
               </div>
@@ -322,6 +321,26 @@ export default function KelolaPendaftar() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Helper: file link with view + download
+function DocLink({ label, path, applicantId }) {
+  const sUrl = `${API_BASE}/s.php?f=${path}`;
+  const dlUrl = `${API_BASE}/api/applicants/${applicantId}/download/${path.split('/')[0] === 'dokumen_ktp' ? 'dokumen_ktp' : path.split('/')[0] === 'dokumen_kk' ? 'dokumen_kk' : path.split('/')[0] === 'dokumen_paspor' ? 'dokumen_paspor' : 'foto'}`;
+  
+  return (
+    <div className="flex items-center gap-2">
+      <a href={sUrl} target="_blank" rel="noreferrer"
+        className="flex-1 block px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-400 transition-colors">
+        📄 Lihat {label}
+      </a>
+      <a href={dlUrl}
+        className="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-emerald-600 transition-colors"
+        title="Download">
+        <FaDownload />
+      </a>
     </div>
   );
 }

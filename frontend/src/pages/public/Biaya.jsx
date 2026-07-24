@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import SEOHelmet from '../../components/common/SEOHelmet';
 import { ScrollReveal } from '../../components/common/ScrollReveal';
-import { FaCheck, FaTimes, FaInfoCircle, FaQuran } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaQuran } from 'react-icons/fa';
 import { TextReveal } from '../../components/common/TextReveal';
 import { HoverCard } from '../../components/common/HoverCard';
 import CountUp from '../../components/common/CountUp';
@@ -41,13 +41,9 @@ export default function Biaya() {
                   <h2 className="text-2xl text-primary-700 font-medium mb-2">{t('biaya.program_title')}</h2>
                   <div className="flex justify-center items-baseline gap-2 mb-4">
                     <span className="text-5xl font-bold text-primary-950">
-                      <CountUp value={45000000} prefix="Rp " />
+                      <CountUp value={47500000} prefix="Rp " />
                     </span>
                   </div>
-                  <p className="text-sm text-primary-600 flex items-center justify-center gap-2">
-                    <FaInfoCircle />
-                    {t('biaya.dapat_dicicil')}
-                  </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-cream-200">

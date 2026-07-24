@@ -36,20 +36,39 @@ Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/categories', [BlogController::class, 'categories']);
 Route::get('/blogs/{blog:id}', [BlogController::class, 'show']);
 
-// Applicant registration (public)
-Route::post('/applicants', [ApplicantController::class, 'store']);
-
-// Payment submission (public)
-Route::post('/payments', [PaymentController::class, 'store']);
+// Applicant registration (public) — throttled: 5 per IP per minute
+Route::post('/applicants', [ApplicantController::class, 'store'])->middleware('throttle:forms');
 
 // Check payment status by phone number (public)
-Route::post('/applicants/check-payment', [ApplicantController::class, 'checkPaymentStatus']);
+Route::post('/applicants/check-payment', [ApplicantController::class, 'checkPaymentStatus'])->middleware('throttle:forms');
+
+// User login (public)
+Route::post('/login', [AuthController::class, 'userLogin'])->middleware('throttle:forms');
 
 // Admin login
-Route::post('/admin/login', [AuthController::class, 'login']);
+Route::post('/admin/login', [AuthController::class, 'login'])->middleware('throttle:forms');
 
 // ==========================================
-// PROTECTED ROUTES (auth:sanctum required)
+// USER ROUTES (auth:sanctum) — applicant dashboard
+// ==========================================
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    // User auth
+    Route::post('/logout', [AuthController::class, 'userLogout']);
+    Route::get('/me', [AuthController::class, 'me']);
+
+    // User own data
+    Route::get('/applicants/me', [ApplicantController::class, 'showOwn']);
+    Route::put('/applicants/me', [ApplicantController::class, 'updateOwn']);
+
+    // User own payments
+    Route::get('/payments/mine', [PaymentController::class, 'myPayments']);
+    Route::post('/payments', [PaymentController::class, 'store'])->middleware('throttle:forms');
+});
+
+// ==========================================
+// ADMIN ROUTES (auth:sanctum)
 // ==========================================
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -65,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/applicants/{applicant}/status', [ApplicantController::class, 'updateStatus']);
     Route::put('/applicants/{applicant}/allow-payment', [ApplicantController::class, 'allowPayment']);
     Route::delete('/applicants/{applicant}', [ApplicantController::class, 'destroy']);
+    Route::get('/applicants/{applicant}/download/{field}', [ApplicantController::class, 'downloadFile']);
 
     // Programs CRUD (admin)
     Route::post('/programs', [ProgramController::class, 'store']);

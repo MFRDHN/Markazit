@@ -16,6 +16,14 @@ class Blog extends Model
         'meta_desc',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
     /**
      * Boot method to auto-generate slug from judul.
      */

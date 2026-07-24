@@ -112,9 +112,8 @@ export default function CostSection() {
                 <div className="mt-8 p-6 bg-gold-500/20 rounded-xl border border-gold-500/40 shadow-sm relative z-10">
                   <p className="text-sm text-black mb-2">Total Estimasi Biaya Awal</p>
                   <div className="flex items-baseline gap-2">
-                    <CountUp value={45000000} prefix="Rp " className="text-3xl font-bold text-black" />
+                    <CountUp value={47500000} prefix="Rp " className="text-3xl font-bold text-black" />
                   </div>
-                  <p className="text-xs text-black mt-2">*Dapat dicicil 3x sebelum keberangkatan</p>
                 </div>
               </div>
             </HoverCard>

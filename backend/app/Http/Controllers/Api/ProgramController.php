@@ -12,9 +12,9 @@ class ProgramController extends Controller
     /**
      * Display a listing of programs.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $programs = Program::orderBy('urutan')->get();
+        $programs = Program::orderBy('urutan')->paginate($request->get('per_page', 20));
         return ProgramResource::collection($programs);
     }
 

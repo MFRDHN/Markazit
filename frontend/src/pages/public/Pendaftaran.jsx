@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SEOHelmet from '../../components/common/SEOHelmet';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { FaCheckCircle, FaSpinner, FaWhatsapp } from 'react-icons/fa';
+import { FaSpinner } from 'react-icons/fa';
 import api from '../../services/api';
 import { TextReveal } from '../../components/common/TextReveal';
 import { ScrollReveal } from '../../components/common/ScrollReveal';
@@ -23,6 +24,7 @@ export default function Pendaftaran() {
     usia: z.string().refine((val) => !isNaN(val) && parseInt(val) >= 15 && parseInt(val) <= 45, { message: t('register.zod_usia') }),
     no_hp: z.string().min(10, t('register.zod_no_hp')),
     email: z.string().email(t('register.zod_email')),
+    password: z.string().min(6, 'Password minimal 6 karakter'),
     motivasi: z.string().min(20, t('register.zod_motivasi')),
     dokumen_ktp: z.any().refine((files) => files?.length === 1, t('register.zod_ktp')),
     dokumen_kk: z.any().refine((files) => files?.length === 1, t('register.zod_kk')),
@@ -57,6 +59,7 @@ export default function Pendaftaran() {
       formData.append('usia', data.usia);
       formData.append('no_hp', data.no_hp);
       formData.append('email', data.email);
+      formData.append('password', data.password);
       formData.append('motivasi', data.motivasi);
 
       if (data.dokumen_ktp[0]) formData.append('dokumen_ktp', data.dokumen_ktp[0]);
@@ -66,11 +69,14 @@ export default function Pendaftaran() {
         formData.append('dokumen_paspor', data.dokumen_paspor[0]);
       }
 
-      await api.post('/applicants', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/applicants', formData);
 
-      setIsSuccess(true);
+      // Auto-login: save token + redirect to dashboard
+      if (res.data.token) {
+        localStorage.setItem('user_token', res.data.token);
+        localStorage.setItem('user_data', JSON.stringify(res.data.data || {}));
+      }
+      navigate('/dashboard');
     } catch (error) {
       const msg = error.response?.data?.message
         || (error.response?.data?.errors ? Object.values(error.response.data.errors).flat().join('\n') : null)
@@ -80,56 +86,6 @@ export default function Pendaftaran() {
       setIsSubmitting(false);
     }
   };
-
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen pt-32 pb-24 flex items-center justify-center bg-cream-50">
-        <div className="glass-card p-12 text-center max-w-lg mx-4">
-          <FaCheckCircle className="text-6xl text-green-500 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold text-primary-950 mb-4">{t('register.success')}</h2>
-          <p className="text-primary-700 mb-6">
-            {t('register.success_intro')}
-          </p>
-
-          <div className="bg-cream-100 rounded-xl p-6 mb-8 text-left space-y-4">
-            <div className="flex items-start gap-3">
-              <span className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0 font-bold text-sm">1</span>
-              <p className="text-sm text-primary-700">
-                <strong>{t('register.success_1')}</strong> {t('register.success_1_desc')}
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center shrink-0 font-bold text-sm">2</span>
-              <p className="text-sm text-primary-700">
-                {t('register.success_2')}
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-7 h-7 rounded-full bg-primary-500 text-white flex items-center justify-center shrink-0 font-bold text-sm">3</span>
-              <p className="text-sm text-primary-700" dangerouslySetInnerHTML={{ __html: t('register.success_3_desc') }} />
-            </div>
-          </div>
-
-          <a
-            href="https://wa.me/62817786805"
-            target="_blank"
-            rel="noreferrer"
-            className="btn-primary w-full flex items-center justify-center gap-3 mb-4"
-          >
-            <FaWhatsapp className="text-xl" />
-            {t('register.chat_admin')}
-          </a>
-
-          <a
-            href="/lanjutkan-pembayaran"
-            className="block w-full text-center text-sm text-primary-500 hover:text-primary-700 underline transition-colors"
-          >
-            {t('register.sudah_dihubungi')}
-          </a>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -194,6 +150,11 @@ export default function Pendaftaran() {
                     <label className="block text-sm font-medium text-primary-700 mb-1">{t('register.email_label')}</label>
                     <input type="email" {...register('email')} className="input-field" placeholder={t('register.email_placeholder')} />
                     {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-primary-700 mb-1">Password</label>
+                    <input type="password" {...register('password')} className="input-field" placeholder="Minimal 6 karakter" />
+                    {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
                   </div>
                 </div>
               </div>

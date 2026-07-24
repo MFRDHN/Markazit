@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\GalleryResource;
 use App\Models\Gallery;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
@@ -38,13 +40,33 @@ class GalleryController extends Controller
             'deskripsi' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('foto')) {
-            $validated['foto'] = $request->file('foto')->store('gallery', 'public');
+        $fotoPath = null;
+
+        try {
+            DB::beginTransaction();
+
+            if ($request->hasFile('foto')) {
+                $fotoPath = $request->file('foto')->store('gallery', 'public');
+                $validated['foto'] = $fotoPath;
+            }
+
+            $gallery = Gallery::create($validated);
+
+            DB::commit();
+
+            return new GalleryResource($gallery);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($fotoPath) {
+                Storage::disk('public')->delete($fotoPath);
+            }
+
+            Log::error('Gallery store failed: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Gagal menyimpan galeri.'], 500);
         }
-
-        $gallery = Gallery::create($validated);
-
-        return new GalleryResource($gallery);
     }
 
     /**
@@ -67,17 +89,33 @@ class GalleryController extends Controller
             'deskripsi' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('foto')) {
-            // Delete old photo
-            if ($gallery->foto) {
-                Storage::disk('public')->delete($gallery->foto);
+        $oldFoto = null;
+
+        try {
+            DB::beginTransaction();
+
+            if ($request->hasFile('foto')) {
+                $oldFoto = $gallery->foto;
+                $validated['foto'] = $request->file('foto')->store('gallery', 'public');
             }
-            $validated['foto'] = $request->file('foto')->store('gallery', 'public');
+
+            $gallery->update($validated);
+
+            if ($oldFoto) {
+                Storage::disk('public')->delete($oldFoto);
+            }
+
+            DB::commit();
+
+            return new GalleryResource($gallery);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gallery update failed: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Gagal mengupdate galeri.'], 500);
         }
-
-        $gallery->update($validated);
-
-        return new GalleryResource($gallery);
     }
 
     /**
@@ -99,7 +137,7 @@ class GalleryController extends Controller
      */
     public function categories()
     {
-        $categories = Gallery::distinct()->pluck('kategori')->filter()->values();
+        $categories = Gallery::whereNotNull('kategori')->distinct()->pluck('kategori');
         return response()->json(['data' => $categories]);
     }
 }

@@ -13,9 +13,9 @@ class TestimonialController extends Controller
     /**
      * Display a listing of testimonials.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $testimonials = Testimonial::latest()->get();
+        $testimonials = Testimonial::latest()->paginate($request->get('per_page', 20));
         return TestimonialResource::collection($testimonials);
     }
 

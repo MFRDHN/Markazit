@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 
-export default function InteractiveBackground({ className = '', particleCount = 30, color = 'rgba(1, 126, 183, 0.15)', lineColor = 'rgba(1, 126, 183, 0.06)' }) {
+// ponytail: default particles 30→15. O(n²) line drawing between particles
+// is the bottleneck. 15 keeps visual feel while cutting line checks by 75%.
+
+export default function InteractiveBackground({ className = '', particleCount = 15, color = 'rgba(1, 126, 183, 0.15)', lineColor = 'rgba(1, 126, 183, 0.06)' }) {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -999, y: -999 });
 
@@ -21,8 +24,8 @@ export default function InteractiveBackground({ className = '', particleCount = 
       particles = Array.from({ length: particleCount }, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
         r: Math.random() * 1.5 + 1,
       }));
     };
@@ -32,7 +35,6 @@ export default function InteractiveBackground({ className = '', particleCount = 
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-
         const dx = mouseRef.current.x - p.x;
         const dy = mouseRef.current.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);

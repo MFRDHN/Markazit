@@ -12,4 +12,12 @@ class Gallery extends Model
         'kategori',
         'deskripsi',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
 }

@@ -2,6 +2,8 @@
 /node_modules
 /public/build
 /public/hot
+/backend.zip
+/database/database.sqlite
 /public/storage
 /storage/*.key
 /storage/pail

@@ -10,23 +10,25 @@ Route::get('/', function () {
     ];
 });
 
-Route::get('/debug', function () {
-    return [
-        'storage_path' => storage_path(),
-        'gallery_path' => storage_path('app/public/gallery'),
-        'gallery_exists' => file_exists(storage_path('app/public/gallery')),
-        'files' => file_exists(storage_path('app/public/gallery'))
-            ? array_slice(scandir(storage_path('app/public/gallery')), 2)
-            : [],
-    ];
-});
+if (app()->isLocal()) {
+    Route::get('/debug', function () {
+        return [
+            'storage_path' => storage_path(),
+            'gallery_path' => storage_path('app/public/gallery'),
+            'gallery_exists' => file_exists(storage_path('app/public/gallery')),
+            'files' => file_exists(storage_path('app/public/gallery'))
+                ? array_slice(scandir(storage_path('app/public/gallery')), 2)
+                : [],
+        ];
+    });
 
-Route::any('/storage/{path}', function (string $path) {
-    return response()->json([
-        'message' => 'storage route hit',
-        'path' => $path,
-    ]);
-})->where('path', '.*');
+    Route::any('/storage/{path}', function (string $path) {
+        return response()->json([
+            'message' => 'storage route hit',
+            'path' => $path,
+        ]);
+    })->where('path', '.*');
+}
 
 Route::fallback(function () {
     return response()->json([

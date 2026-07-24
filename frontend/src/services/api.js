@@ -2,16 +2,18 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  timeout: 15000, // 15s — don't hang forever
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token (admin or user)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token');
+    const adminToken = localStorage.getItem('admin_token');
+    const userToken = localStorage.getItem('user_token');
+    const token = adminToken || userToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,10 +29,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
-      // Redirect to login if on admin pages
-      if (window.location.pathname.startsWith('/admin')) {
-        window.location.href = '/admin/login';
-      }
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_data');
+      const path = window.location.pathname;
+      if (path.startsWith('/admin')) window.location.href = '/admin/login';
+      else if (path.startsWith('/dashboard')) window.location.href = '/login';
     }
     return Promise.reject(error);
   }

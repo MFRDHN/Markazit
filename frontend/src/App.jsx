@@ -1,26 +1,34 @@
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import PublicLayout from './components/common/PublicLayout';
-import Home from './pages/public/Home';
-import Program from './pages/public/Program';
-import Biaya from './pages/public/Biaya';
-import KehidupanMadinah from './pages/public/KehidupanMadinah';
-import Galeri from './pages/public/Galeri';
-import Pendaftaran from './pages/public/Pendaftaran';
-import LanjutkanPembayaran from './pages/public/LanjutkanPembayaran';
-import TentangKami from './pages/public/TentangKami';
-import BlogList from './pages/public/BlogList';
-import BlogDetail from './pages/public/BlogDetail';
-import NotFound from './pages/public/NotFound';
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
-import Dashboard from './pages/admin/Dashboard';
-import KelolaPendaftar from './pages/admin/KelolaPendaftar';
-import KelolaProgram from './pages/admin/KelolaProgram';
-import KelolaGaleri from './pages/admin/KelolaGaleri';
-import KelolaTestimoni from './pages/admin/KelolaTestimoni';
-import KelolaBlog from './pages/admin/KelolaBlog';
+import DashboardLayout from './pages/dashboard/DashboardLayout';
+import LoadingScreen from './components/common/LoadingScreen';
+
+// Lazy-loaded pages — each becomes a separate chunk
+const Home = lazy(() => import('./pages/public/Home'));
+const Program = lazy(() => import('./pages/public/Program'));
+const Biaya = lazy(() => import('./pages/public/Biaya'));
+const KehidupanMadinah = lazy(() => import('./pages/public/KehidupanMadinah'));
+const Galeri = lazy(() => import('./pages/public/Galeri'));
+const Pendaftaran = lazy(() => import('./pages/public/Pendaftaran'));
+const LanjutkanPembayaran = lazy(() => import('./pages/public/LanjutkanPembayaran'));
+const TentangKami = lazy(() => import('./pages/public/TentangKami'));
+const BlogList = lazy(() => import('./pages/public/BlogList'));
+const BlogDetail = lazy(() => import('./pages/public/BlogDetail'));
+const NotFound = lazy(() => import('./pages/public/NotFound'));
+const Login = lazy(() => import('./pages/public/Login'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const DashboardHome = lazy(() => import('./pages/dashboard/DashboardHome'));
+const DataDiri = lazy(() => import('./pages/dashboard/DataDiri'));
+const Pembayaran = lazy(() => import('./pages/dashboard/Pembayaran'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const KelolaPendaftar = lazy(() => import('./pages/admin/KelolaPendaftar'));
+const KelolaProgram = lazy(() => import('./pages/admin/KelolaProgram'));
+const KelolaGaleri = lazy(() => import('./pages/admin/KelolaGaleri'));
+const KelolaTestimoni = lazy(() => import('./pages/admin/KelolaTestimoni'));
+const KelolaBlog = lazy(() => import('./pages/admin/KelolaBlog'));
 
 function App() {
   const { i18n } = useTranslation();
@@ -31,33 +39,43 @@ function App() {
   }, [i18n.language]);
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/program" element={<Program />} />
-        <Route path="/biaya" element={<Biaya />} />
-        <Route path="/kehidupan-madinah" element={<KehidupanMadinah />} />
-        <Route path="/galeri" element={<Galeri />} />
-        <Route path="/pendaftaran" element={<Pendaftaran />} />
-        <Route path="/lanjutkan-pembayaran" element={<LanjutkanPembayaran />} />
-        <Route path="/tentang-kami" element={<TentangKami />} />
-        <Route path="/blog" element={<BlogList />} />
-        <Route path="/blog/:slug" element={<BlogDetail />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        {/* Public Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/program" element={<Program />} />
+          <Route path="/biaya" element={<Biaya />} />
+          <Route path="/kehidupan-madinah" element={<KehidupanMadinah />} />
+          <Route path="/galeri" element={<Galeri />} />
+          <Route path="/pendaftaran" element={<Pendaftaran />} />
+          <Route path="/lanjutkan-pembayaran" element={<LanjutkanPembayaran />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/tentang-kami" element={<TentangKami />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:slug" element={<BlogDetail />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
 
-      {/* Admin Routes */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="pendaftar" element={<KelolaPendaftar />} />
-        <Route path="program" element={<KelolaProgram />} />
-        <Route path="galeri" element={<KelolaGaleri />} />
-        <Route path="testimoni" element={<KelolaTestimoni />} />
-        <Route path="blog" element={<KelolaBlog />} />
-      </Route>
-    </Routes>
+        {/* User Dashboard Routes */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+          <Route path="data" element={<DataDiri />} />
+          <Route path="pembayaran" element={<Pembayaran />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="pendaftar" element={<KelolaPendaftar />} />
+          <Route path="program" element={<KelolaProgram />} />
+          <Route path="galeri" element={<KelolaGaleri />} />
+          <Route path="testimoni" element={<KelolaTestimoni />} />
+          <Route path="blog" element={<KelolaBlog />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 
