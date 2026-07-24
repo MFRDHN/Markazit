@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet, FaDownload } from 'react-icons/fa';
+import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet, FaDownload, FaFile, FaFileImage, FaFilePdf } from 'react-icons/fa';
 import api from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
-
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '');
 
 export default function KelolaPendaftar() {
   const [applicants, setApplicants] = useState([]);
@@ -216,9 +214,9 @@ export default function KelolaPendaftar() {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-xl bg-cream-200 overflow-hidden shrink-0 border border-cream-300">
                   {selectedApplicant.foto ? (
-                    <img src={selectedApplicant.foto} alt="Foto" className="w-full h-full object-cover" />
+                    <img src={`/api/applicants/${selectedApplicant.id}/file/foto`} alt="Foto" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-primary-500">Foto</div>
+                    <div className="w-full h-full flex items-center justify-center text-primary-500"><FaFileImage /></div>
                   )}
                 </div>
                 <div>
@@ -327,14 +325,20 @@ export default function KelolaPendaftar() {
 
 // Helper: file link with view + download
 function DocLink({ label, path, applicantId }) {
-  const sUrl = `${API_BASE}/s.php?f=${path}`;
-  const dlUrl = `${API_BASE}/api/applicants/${applicantId}/download/${path.split('/')[0] === 'dokumen_ktp' ? 'dokumen_ktp' : path.split('/')[0] === 'dokumen_kk' ? 'dokumen_kk' : path.split('/')[0] === 'dokumen_paspor' ? 'dokumen_paspor' : 'foto'}`;
-  
+  const field = path?.startsWith('dokumen_ktp') ? 'dokumen_ktp'
+    : path?.startsWith('dokumen_kk') ? 'dokumen_kk'
+    : path?.startsWith('dokumen_paspor') ? 'dokumen_paspor'
+    : 'foto';
+  const viewUrl = `/api/applicants/${applicantId}/file/${field}`;
+  const dlUrl = `/api/applicants/${applicantId}/download/${field}`;
+  const isImage = path?.match(/\.(jpg|jpeg|png)$/i);
+
   return (
     <div className="flex items-center gap-2">
-      <a href={sUrl} target="_blank" rel="noreferrer"
-        className="flex-1 block px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-400 transition-colors">
-        📄 Lihat {label}
+      <a href={viewUrl} target="_blank" rel="noreferrer"
+        className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-700 transition-colors">
+        {isImage ? <FaFileImage className="text-primary-400" /> : <FaFilePdf className="text-red-400" />}
+        Lihat {label}
       </a>
       <a href={dlUrl}
         className="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-emerald-600 transition-colors"

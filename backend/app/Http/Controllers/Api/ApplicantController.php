@@ -182,21 +182,52 @@ class ApplicantController extends Controller
     }
 
     /**
+     * View applicant file inline in browser.
+     */
+    public function viewFile(Applicant $applicant, string $field)
+    {
+        $this->validateFileField($field, $applicant);
+        $path = $this->resolveFilePath($field, $applicant);
+
+        return response()->file($path);
+    }
+
+    /**
      * Download applicant file (admin only).
      */
     public function downloadFile(Applicant $applicant, string $field)
     {
-        $allowed = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
-        if (!in_array($field, $allowed) || !$applicant->$field) {
-            abort(404);
-        }
-
-        $path = storage_path('app/public/' . $applicant->$field);
-        if (!file_exists($path)) {
-            abort(404);
-        }
+        $this->validateFileField($field, $applicant);
+        $path = $this->resolveFilePath($field, $applicant);
 
         return response()->download($path, $field . '_' . $applicant->nama . '.' . pathinfo($path, PATHINFO_EXTENSION));
+    }
+
+    /**
+     * View own applicant file (user).
+     */
+    public function viewOwnFile(Request $request, string $field)
+    {
+        $applicant = $request->user()->applicant;
+        abort_unless($applicant, 404);
+
+        $this->validateFileField($field, $applicant);
+        $path = $this->resolveFilePath($field, $applicant);
+
+        return response()->file($path);
+    }
+
+    private function validateFileField(string $field, $applicant): void
+    {
+        $allowed = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
+        abort_unless(in_array($field, $allowed) && $applicant->$field, 404);
+    }
+
+    private function resolveFilePath(string $field, $applicant): string
+    {
+        $path = storage_path('app/public/' . $applicant->$field);
+        abort_unless(file_exists($path), 404);
+        return $path;
     }
 
     /**

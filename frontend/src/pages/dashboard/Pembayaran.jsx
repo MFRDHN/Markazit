@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
+import { FaSpinner, FaWallet, FaUpload, FaFileInvoice, FaExternalLinkAlt, FaCheck, FaTimes, FaHourglassHalf, FaUniversity } from 'react-icons/fa';
 import api from '../../services/api';
 import SEOHelmet from '../../components/common/SEOHelmet';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export default function Pembayaran() {
   const [payments, setPayments] = useState([]);
@@ -27,7 +26,6 @@ export default function Pembayaran() {
     setMsg({ type: '', text: '' });
 
     try {
-      // Get applicant ID from /me
       const me = await api.get('/applicants/me');
       const applicantId = me.data.data.id;
 
@@ -48,67 +46,102 @@ export default function Pembayaran() {
   };
 
   const statusBadge = (s) => {
-    const colors = { pending: 'bg-yellow-100 text-yellow-800', verified: 'bg-green-100 text-green-800', rejected: 'bg-red-100 text-red-800' };
-    return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[s] || 'bg-gray-100'}`}>{s || 'pending'}</span>;
+    const colors = {
+      pending: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+      verified: 'bg-green-500/10 text-green-500 border-green-500/20',
+      rejected: 'bg-red-500/10 text-red-500 border-red-500/20',
+    };
+    return <span className={`rounded-full px-3 py-1 text-xs font-bold border ${colors[s] || 'bg-cream-100 text-primary-600'}`}>{s || 'pending'}</span>;
   };
 
   return (
     <>
       <SEOHelmet title="Pembayaran" />
-      <h1 className="mb-6 text-2xl font-bold text-gray-800">Pembayaran</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-primary-950 mb-1">Pembayaran</h1>
+        <p className="text-primary-600 text-sm">Upload bukti transfer dan riwayat pembayaran</p>
+      </div>
 
       {/* Info biaya */}
-      <div className="mb-6 rounded-xl bg-emerald-50 p-4 text-sm">
-        <p><strong>Biaya Pendaftaran:</strong> Rp 2.500.000</p>
-        <p><strong>Total Program:</strong> Rp 47.500.000</p>
-        <p className="mt-1 text-xs text-gray-500">Bank BSI 7364 9901 83 a.n. PT MARKAZ IT INTERNATIONAL</p>
+      <div className="admin-card flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center shrink-0">
+          <FaUniversity className="text-green-500 text-xl" />
+        </div>
+        <div>
+          <p className="text-sm text-primary-700">
+            <span className="font-bold text-primary-950">Biaya Pendaftaran:</span> Rp 2.500.000
+            <span className="mx-2 text-cream-300">|</span>
+            <span className="font-bold text-primary-950">Total Program:</span> Rp 47.500.000
+          </p>
+          <p className="text-xs text-primary-600 mt-1">
+            Bank BSI 7364 9901 83 a.n. PT MARKAZ IT INTERNATIONAL
+          </p>
+        </div>
       </div>
 
       {msg.text && (
-        <div className={`mb-4 rounded-lg p-3 text-sm ${msg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+        <div className={`mb-4 rounded-xl p-4 text-sm font-medium border ${msg.type === 'success' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
           {msg.text}
         </div>
       )}
 
       {/* Upload form */}
-      <form onSubmit={handleUpload} className="mb-8 max-w-md rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold">Upload Bukti Transfer</h2>
-        <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => setBukti(e.target.files[0])}
-          className="mb-4 w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-emerald-700" required />
-        <button type="submit" disabled={saving || !bukti}
-          className="rounded-lg bg-emerald-600 px-6 py-2 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50">
-          {saving ? 'Mengupload...' : 'Upload Bukti'}
-        </button>
-      </form>
+      <div className="admin-card mb-8">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center">
+            <FaUpload className="text-primary-400" />
+          </div>
+          <h2 className="font-bold text-primary-950">Upload Bukti Transfer</h2>
+        </div>
+        <form onSubmit={handleUpload} className="flex flex-col sm:flex-row gap-3">
+          <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => setBukti(e.target.files[0])}
+            className="input-field flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600" required />
+          <button type="submit" disabled={saving || !bukti}
+            className="btn-primary flex items-center justify-center gap-2 shrink-0">
+            {saving ? <><FaSpinner className="animate-spin" /> Mengupload...</> : <><FaUpload /> Upload</>}
+          </button>
+        </form>
+      </div>
 
       {/* Riwayat */}
-      <div className="rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold">Riwayat Pembayaran</h2>
+      <div className="admin-card">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+            <FaFileInvoice className="text-blue-500" />
+          </div>
+          <h2 className="font-bold text-primary-950">Riwayat Pembayaran</h2>
+        </div>
+
         {loading ? (
-          <div className="flex justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" /></div>
+          <div className="flex justify-center py-10"><FaSpinner className="animate-spin text-primary-400 text-xl" /></div>
         ) : payments.length === 0 ? (
-          <p className="text-sm text-gray-500">Belum ada pembayaran.</p>
+          <div className="text-center py-10 text-primary-600">
+            <FaWallet className="text-3xl mx-auto mb-2 text-primary-400" />
+            <p className="text-sm">Belum ada pembayaran.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm text-left">
               <thead>
-                <tr className="border-b text-left text-gray-500">
-                  <th className="pb-2 pr-4">Tanggal</th>
-                  <th className="pb-2 pr-4">Jumlah</th>
-                  <th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2">File</th>
+                <tr className="border-b border-cream-200 text-primary-600 uppercase text-xs">
+                  <th className="px-4 py-3 font-medium">Tanggal</th>
+                  <th className="px-4 py-3 font-medium">Jumlah</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">File</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-cream-200/50 text-primary-700">
                 {payments.map((p) => (
-                  <tr key={p.id} className="border-b last:border-0">
-                    <td className="py-2 pr-4">{new Date(p.created_at).toLocaleDateString('id-ID')}</td>
-                    <td className="py-2 pr-4">Rp {Number(p.jumlah).toLocaleString('id-ID')}</td>
-                    <td className="py-2 pr-4">{statusBadge(p.status)}</td>
-                    <td className="py-2">
+                  <tr key={p.id} className="hover:bg-cream-50 transition-colors">
+                    <td className="px-4 py-3">{new Date(p.created_at).toLocaleDateString('id-ID')}</td>
+                    <td className="px-4 py-3 font-medium">Rp {Number(p.jumlah).toLocaleString('id-ID')}</td>
+                    <td className="px-4 py-3">{statusBadge(p.status)}</td>
+                    <td className="px-4 py-3">
                       {p.bukti && (
-                        <a href={`${API_URL.replace('/api', '/s.php')}?f=${p.bukti}`} target="_blank" rel="noopener noreferrer"
-                          className="text-emerald-600 hover:underline text-xs">Lihat</a>
+                        <a href={`/api/payments/mine/${p.id}/file`} target="_blank" rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-primary-400 hover:text-primary-700 text-xs font-medium transition-colors">
+                          <FaExternalLinkAlt /> Lihat
+                        </a>
                       )}
                     </td>
                   </tr>

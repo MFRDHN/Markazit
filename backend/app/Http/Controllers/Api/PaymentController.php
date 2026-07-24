@@ -122,4 +122,18 @@ class PaymentController extends Controller
 
         return PaymentResource::collection($payments);
     }
+
+    /**
+     * View own payment proof file.
+     */
+    public function viewOwnFile(Request $request, Payment $payment)
+    {
+        $applicant = $request->user()->applicant;
+        abort_unless($applicant && $payment->applicant_id === $applicant->id, 403);
+
+        $path = storage_path('app/public/' . $payment->bukti);
+        abort_unless($payment->bukti && file_exists($path), 404);
+
+        return response()->file($path);
+    }
 }

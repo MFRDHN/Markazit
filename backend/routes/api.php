@@ -65,6 +65,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // User own payments
     Route::get('/payments/mine', [PaymentController::class, 'myPayments']);
     Route::post('/payments', [PaymentController::class, 'store'])->middleware('throttle:forms');
+
+    // User view own file
+    Route::get('/applicants/me/file/{field}', [ApplicantController::class, 'viewOwnFile']);
+    Route::get('/payments/mine/{payment}/file', [PaymentController::class, 'viewOwnFile']);
 });
 
 // ==========================================
@@ -85,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/applicants/{applicant}/allow-payment', [ApplicantController::class, 'allowPayment']);
     Route::delete('/applicants/{applicant}', [ApplicantController::class, 'destroy']);
     Route::get('/applicants/{applicant}/download/{field}', [ApplicantController::class, 'downloadFile']);
+    Route::get('/applicants/{applicant}/file/{field}', [ApplicantController::class, 'viewFile']);
 
     // Programs CRUD (admin)
     Route::post('/programs', [ProgramController::class, 'store']);

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { FaTachometerAlt, FaUser, FaWallet, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
 import api from '../../services/api';
 
 const navItems = [
-  { to: '/dashboard', label: 'Ringkasan', icon: '📊', end: true },
-  { to: '/dashboard/data', label: 'Data Diri', icon: '📋' },
-  { to: '/dashboard/pembayaran', label: 'Pembayaran', icon: '💰' },
+  { to: '/dashboard', label: 'Ringkasan', icon: FaTachometerAlt, end: true },
+  { to: '/dashboard/data', label: 'Data Diri', icon: FaUser },
+  { to: '/dashboard/pembayaran', label: 'Pembayaran', icon: FaWallet },
 ];
 
 export default function DashboardLayout() {
@@ -31,20 +32,22 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-cream-50">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-bold text-emerald-700">Dashboard</h2>
-          <button className="lg:hidden text-gray-500 text-2xl" onClick={() => setSidebarOpen(false)}>✕</button>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white border-r border-cream-200 shadow-lg transition-transform lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between border-b border-cream-200 px-6 py-5">
+          <h2 className="text-lg font-bold text-primary-950">Dashboard</h2>
+          <button className="lg:hidden text-primary-600 hover:text-primary-950" onClick={() => setSidebarOpen(false)}>
+            <FaTimes size={20} />
+          </button>
         </div>
 
-        <div className="border-b px-6 py-3">
-          <p className="text-sm font-medium text-gray-800">{user?.name || 'User'}</p>
-          <p className="text-xs text-gray-500">{user?.email || ''}</p>
+        <div className="border-b border-cream-200 px-6 py-4">
+          <p className="text-sm font-bold text-primary-950">{user?.name || 'User'}</p>
+          <p className="text-xs text-primary-600">{user?.email || ''}</p>
         </div>
 
-        <nav className="mt-4 space-y-1 px-3">
+        <nav className="mt-6 space-y-1 px-3">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -52,40 +55,40 @@ export default function DashboardLayout() {
               end={item.end}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                  isActive ? 'bg-emerald-50 text-emerald-700' : 'text-gray-600 hover:bg-gray-100'
+                `flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                  isActive ? 'bg-primary-500/10 text-primary-400' : 'text-primary-700 hover:bg-primary-900/5 hover:text-primary-950'
                 }`
               }
             >
-              <span>{item.icon}</span>
+              <item.icon className={({ isActive }) => isActive ? 'text-primary-400' : 'text-primary-500'} />
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="absolute bottom-4 left-3 right-3 px-3">
+        <div className="absolute bottom-6 left-3 right-3 px-3">
           <button
             onClick={handleLogout}
-            className="w-full rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-500/20"
           >
-            Logout
+            <FaSignOutAlt /> Logout
           </button>
         </div>
       </aside>
 
       {/* Overlay mobile */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-30 bg-black/20 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Main content */}
       <main className="flex-1 px-4 py-6 lg:px-8">
         {/* Mobile toggle */}
         <button
-          className="mb-4 rounded-lg bg-white p-2 shadow lg:hidden"
+          className="mb-4 flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-medium text-primary-700 shadow-sm border border-cream-200 lg:hidden hover:bg-cream-100 transition-colors"
           onClick={() => setSidebarOpen(true)}
         >
-          ☰ Menu
+          <FaBars /> Menu
         </button>
 
         <Outlet />
