@@ -3,6 +3,23 @@ import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet, FaDown
 import api from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
+// ponytail: fetch protected files via axios (Bearer token) instead of direct links (401/404)
+const openFile = async (url) => {
+  try {
+    const res = await api.get(url, { responseType: 'blob' });
+    window.open(URL.createObjectURL(res.data), '_blank');
+  } catch { alert('Gagal membuka file'); }
+};
+const downloadFile = async (url, name) => {
+  try {
+    const res = await api.get(url, { responseType: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(res.data);
+    a.download = name;
+    a.click();
+  } catch { alert('Gagal mengunduh file'); }
+};
+
 export default function KelolaPendaftar() {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +30,7 @@ export default function KelolaPendaftar() {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [fotoBlob, setFotoBlob] = useState(null);
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -62,6 +80,16 @@ export default function KelolaPendaftar() {
       setIsUpdating(false);
     }
   };
+
+  // Fetch foto blob for selected applicant
+  useEffect(() => {
+    if (!selectedApplicant?.foto) { setFotoBlob(null); return; }
+    let cancel = false;
+    api.get(`/applicants/${selectedApplicant.id}/file/foto`, { responseType: 'blob' })
+      .then(r => { if (!cancel) setFotoBlob(URL.createObjectURL(r.data)); })
+      .catch(() => setFotoBlob(null));
+    return () => { cancel = true; if (fotoBlob) URL.revokeObjectURL(fotoBlob); };
+  }, [selectedApplicant?.id, selectedApplicant?.foto]);
 
   const deleteApplicant = async (id) => {
     try {
@@ -213,8 +241,8 @@ export default function KelolaPendaftar() {
               {/* Profile Header */}
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-xl bg-cream-200 overflow-hidden shrink-0 border border-cream-300">
-                  {selectedApplicant.foto ? (
-                    <img src={`/api/applicants/${selectedApplicant.id}/file/foto`} alt="Foto" className="w-full h-full object-cover" />
+                  {fotoBlob ? (
+                    <img src={fotoBlob} alt="Foto" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-primary-500"><FaFileImage /></div>
                   )}
@@ -323,28 +351,28 @@ export default function KelolaPendaftar() {
   );
 }
 
-// Helper: file link with view + download
+// Helper: file link with view + download (uses axios to avoid 401 from direct href)
 function DocLink({ label, path, applicantId }) {
   const field = path?.startsWith('dokumen_ktp') ? 'dokumen_ktp'
     : path?.startsWith('dokumen_kk') ? 'dokumen_kk'
     : path?.startsWith('dokumen_paspor') ? 'dokumen_paspor'
     : 'foto';
-  const viewUrl = `/api/applicants/${applicantId}/file/${field}`;
-  const dlUrl = `/api/applicants/${applicantId}/download/${field}`;
+  const viewUrl = `/applicants/${applicantId}/file/${field}`;
+  const dlUrl = `/applicants/${applicantId}/download/${field}`;
   const isImage = path?.match(/\.(jpg|jpeg|png)$/i);
 
   return (
     <div className="flex items-center gap-2">
-      <a href={viewUrl} target="_blank" rel="noreferrer"
-        className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-700 transition-colors">
+      <button onClick={() => openFile(viewUrl)}
+        className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-cream-200 border border-cream-200 rounded-lg text-sm text-primary-700 transition-colors text-left">
         {isImage ? <FaFileImage className="text-primary-400" /> : <FaFilePdf className="text-red-400" />}
         Lihat {label}
-      </a>
-      <a href={dlUrl}
+      </button>
+      <button onClick={() => downloadFile(dlUrl, `${label}_${applicantId}`)}
         className="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-emerald-600 transition-colors"
         title="Download">
         <FaDownload />
-      </a>
+      </button>
     </div>
   );
 }

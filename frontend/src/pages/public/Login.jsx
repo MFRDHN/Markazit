@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { FaSpinner } from 'react-icons/fa';
 import SEOHelmet from '../../components/common/SEOHelmet';
 import api from '../../services/api';
+import { TextReveal } from '../../components/common/TextReveal';
+import { ScrollReveal } from '../../components/common/ScrollReveal';
 
 export default function Login() {
   const { t } = useTranslation();
@@ -34,18 +36,19 @@ export default function Login() {
       <SEOHelmet title="Login" />
       <section className="pt-32 pb-24 bg-primary-950 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 drop-shadow-md">
-            {t('nav.login')}
-          </h1>
-          <p className="text-lg text-cream-100 max-w-2xl mx-auto">
-            Masuk ke dashboard pendaftaran Anda
-          </p>
+          <ScrollReveal direction="up">
+            <h1 className="sr-only">Masuk Akun</h1>
+            <TextReveal text="Masuk Akun" className="text-4xl md:text-5xl font-display font-bold text-white mb-6 justify-center drop-shadow-md" />
+            <p className="text-lg text-cream-100 max-w-2xl mx-auto text-balance opacity-90">
+              Masuk ke dashboard pendaftaran Anda
+            </p>
+          </ScrollReveal>
         </div>
       </section>
 
-      <section className="py-16 md:py-20 bg-cream-50 min-h-[60vh]">
+      <section className="py-16 md:py-20 lg:py-24 bg-cream-50 min-h-screen">
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="admin-card">
+          <div className="glass-card p-8 md:p-10">
             {error && (
               <div className="mb-4 rounded-xl p-4 text-sm font-medium border bg-red-500/10 text-red-600 border-red-500/20">
                 {error}

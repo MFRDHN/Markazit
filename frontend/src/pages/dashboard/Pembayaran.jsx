@@ -3,6 +3,14 @@ import { FaSpinner, FaWallet, FaUpload, FaFileInvoice, FaExternalLinkAlt, FaChec
 import api from '../../services/api';
 import SEOHelmet from '../../components/common/SEOHelmet';
 
+// ponytail: fetch via axios to avoid 401 from direct href
+const openFile = async (url) => {
+  try {
+    const res = await api.get(url, { responseType: 'blob' });
+    window.open(URL.createObjectURL(res.data), '_blank');
+  } catch { alert('Gagal membuka file'); }
+};
+
 export default function Pembayaran() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,10 +146,10 @@ export default function Pembayaran() {
                     <td className="px-4 py-3">{statusBadge(p.status)}</td>
                     <td className="px-4 py-3">
                       {p.bukti && (
-                        <a href={`/api/payments/mine/${p.id}/file`} target="_blank" rel="noreferrer"
+                        <button onClick={() => openFile(`/payments/mine/${p.id}/file`)}
                           className="inline-flex items-center gap-1.5 text-primary-400 hover:text-primary-700 text-xs font-medium transition-colors">
                           <FaExternalLinkAlt /> Lihat
-                        </a>
+                        </button>
                       )}
                     </td>
                   </tr>

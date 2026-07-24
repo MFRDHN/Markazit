@@ -223,11 +223,11 @@ export default function Pendaftaran() {
 
           {/* Success state */}
           {isSuccess && (
-            <div className="glass-card p-8 md:p-10 text-center">
-              <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
+            <div className="text-center py-8">
+              <FaCheckCircle className="text-green-500 text-5xl mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-primary-950 mb-2">{t('register.success')}</h3>
-              <p className="text-primary-700 mb-6">{t('register.success_intro')}</p>
-              <Link to="/login" className="btn-primary inline-block">
+              <p className="text-primary-600 mb-6">{t('register.success_intro')}</p>
+              <Link to="/login" className="btn-primary">
                 Masuk ke Akun
               </Link>
             </div>

@@ -3,6 +3,14 @@ import { FaSpinner, FaUser, FaSave, FaFile, FaFileImage, FaFilePdf, FaExternalLi
 import api from '../../services/api';
 import SEOHelmet from '../../components/common/SEOHelmet';
 
+// ponytail: fetch via axios to avoid 401 from direct href
+const openFile = async (url) => {
+  try {
+    const res = await api.get(url, { responseType: 'blob' });
+    window.open(URL.createObjectURL(res.data), '_blank');
+  } catch { alert('Gagal membuka file'); }
+};
+
 export default function DataDiri() {
   const [form, setForm] = useState({ nama: '', usia: '', no_hp: '', email: '', motivasi: '' });
   const [applicant, setApplicant] = useState(null);
@@ -73,12 +81,12 @@ export default function DataDiri() {
               ['Paspor', 'dokumen_paspor'],
               ['Foto', 'foto'],
             ].filter(([, f]) => applicant[f]).map(([label, field]) => (
-              <a key={field} href={`/api/applicants/me/file/${field}`} target="_blank" rel="noreferrer"
-                className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors">
+              <button key={field} onClick={() => openFile(`/applicants/me/file/${field}`)}
+                className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors w-full text-left">
                 {field === 'foto' ? <FaFileImage className="text-primary-400" /> : <FaFilePdf className="text-red-400" />}
                 <span className="flex-1 text-sm text-primary-700">{label}</span>
                 <FaExternalLinkAlt className="text-primary-400 text-xs" />
-              </a>
+              </button>
             ))}
           </div>
         </div>
