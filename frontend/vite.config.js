@@ -6,15 +6,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React core — rarely changes, good for long-term caching
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          // i18n
-          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          // Animation
-          animation: ['framer-motion'],
-          // 3D (only used on homepage)
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) return 'vendor'
+          if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) return 'i18n'
+          if (id.includes('node_modules/framer-motion')) return 'animation'
+          if (id.includes('node_modules/three')) return 'three'
         },
       },
     },

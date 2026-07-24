@@ -4,6 +4,7 @@ node_modules
 *.sql
 /frontend/dist/
 /storage/
+/deploy/
 /composer.json
 /composer.lock
 /package.json
