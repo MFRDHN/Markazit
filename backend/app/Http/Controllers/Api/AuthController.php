@@ -13,6 +13,11 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    private function ensureAdmin(): void
+    {
+        abort_unless(auth()->user()?->role === 'admin', 403);
+    }
+
     // ─── ADMIN AUTH ──────────────────────────────────────
 
     public function login(Request $request)
@@ -42,6 +47,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $this->ensureAdmin();
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logout berhasil.']);
     }
@@ -105,6 +111,7 @@ class AuthController extends Controller
 
     public function dashboard()
     {
+        $this->ensureAdmin();
         $monthStart = now()->startOfMonth();
         $monthEnd = now()->endOfMonth();
 

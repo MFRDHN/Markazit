@@ -17,11 +17,24 @@ use Illuminate\Validation\Rule;
 
 class ApplicantController extends Controller
 {
+    // ponytail: no-cache headers for file serving (prevents stale photo showing)
+    private const NO_CACHE = [
+        'Cache-Control' => 'no-cache, no-store, must-revalidate, private',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
+    ];
+
+    private function ensureAdmin(): void
+    {
+        abort_unless(auth()->user()?->role === 'admin', 403);
+    }
+
     /**
      * Display a listing of applicants (admin only).
      */
     public function index(Request $request)
     {
+        $this->ensureAdmin();
         $query = Applicant::with('payments')->latest();
 
         if ($request->has('status') && $request->status !== 'all') {
@@ -42,61 +55,39 @@ class ApplicantController extends Controller
     }
 
     /**
-     * Store a newly created applicant (public). Creates user account + returns token.
+     * Store a newly created applicant (public). Creates user account + applicant stub.
+     * ponytail: only email + password; user fills profile later in dashboard.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'usia' => 'required|integer|min:15|max:45',
-            'no_hp' => ['required', 'string', 'max:20', Rule::unique('applicants', 'no_hp')],
-            'email' => ['required', 'email', 'max:255', Rule::unique('applicants', 'email')],
-            'password' => 'required|string|min:6',
-            'dokumen_ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'dokumen_kk' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'dokumen_paspor' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-            'motivasi' => 'nullable|string',
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email'), Rule::unique('applicants', 'email')],
+            'password' => 'required|string|min:6|confirmed',
         ]);
-
-        $uploadedFiles = [];
 
         try {
             DB::beginTransaction();
 
-            // Create user account
             $user = User::create([
-                'name' => $validated['nama'],
+                'name' => explode('@', $validated['email'])[0],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role' => 'applicant',
             ]);
-            $validated['user_id'] = $user->id;
-            unset($validated['password']);
 
-            // Handle file uploads
-            $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
-            foreach ($fileFields as $field) {
-                if ($request->hasFile($field)) {
-                    $path = $request->file($field)->store('applicants/' . $field, 'public');
-                    $validated[$field] = $path;
-                    $uploadedFiles[] = $path;
-                }
-            }
-
-            $applicant = Applicant::create($validated);
+            // ponytail: minimal applicant stub; user fills rest in dashboard
+            $applicant = Applicant::create([
+                'user_id' => $user->id,
+                'nama' => explode('@', $validated['email'])[0],
+                'usia' => 18,
+                'no_hp' => '-',
+                'email' => $validated['email'],
+                'status' => 'pending',
+            ]);
 
             DB::commit();
 
-            // Generate token
             $token = $user->createToken('applicant-token')->plainTextToken;
-
-            // ponytail: email disabled until SMTP is ready
-            // try {
-            //     Mail::to($applicant->email)->queue(new ApplicantConfirmation($applicant));
-            // } catch (\Exception $e) {
-            //     Log::error('Failed to queue confirmation email: ' . $e->getMessage());
-            // }
 
             return response()->json([
                 'message' => 'Pendaftaran berhasil!',
@@ -105,13 +96,7 @@ class ApplicantController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            foreach ($uploadedFiles as $path) {
-                Storage::disk('public')->delete($path);
-            }
-
             Log::error('Applicant registration failed: ' . $e->getMessage());
-
             return response()->json([
                 'message' => 'Gagal mendaftar. Silakan coba lagi.',
             ], 422);
@@ -182,14 +167,15 @@ class ApplicantController extends Controller
     }
 
     /**
-     * View applicant file inline in browser.
+     * View applicant file inline in browser (admin only).
      */
     public function viewFile(Applicant $applicant, string $field)
     {
+        $this->ensureAdmin();
         $this->validateFileField($field, $applicant);
         $path = $this->resolveFilePath($field, $applicant);
 
-        return response()->file($path);
+        return response()->file($path, self::NO_CACHE);
     }
 
     /**
@@ -197,6 +183,7 @@ class ApplicantController extends Controller
      */
     public function downloadFile(Applicant $applicant, string $field)
     {
+        $this->ensureAdmin();
         $this->validateFileField($field, $applicant);
         $path = $this->resolveFilePath($field, $applicant);
 
@@ -214,7 +201,7 @@ class ApplicantController extends Controller
         $this->validateFileField($field, $applicant);
         $path = $this->resolveFilePath($field, $applicant);
 
-        return response()->file($path);
+        return response()->file($path, self::NO_CACHE);
     }
 
     private function validateFileField(string $field, $applicant): void
@@ -235,6 +222,7 @@ class ApplicantController extends Controller
      */
     public function show(Applicant $applicant)
     {
+        $this->ensureAdmin();
         return new ApplicantResource($applicant->load('payments'));
     }
 
@@ -243,6 +231,7 @@ class ApplicantController extends Controller
      */
     public function updateStatus(Request $request, Applicant $applicant)
     {
+        $this->ensureAdmin();
         $validated = $request->validate([
             'status' => 'required|in:pending,review,diterima,ditolak',
         ]);
@@ -289,6 +278,7 @@ class ApplicantController extends Controller
      */
     public function allowPayment(Request $request, Applicant $applicant)
     {
+        $this->ensureAdmin();
         $applicant->update([
             'payment_allowed_at' => now(),
             'status' => 'review',
@@ -302,12 +292,20 @@ class ApplicantController extends Controller
      */
     public function destroy(Applicant $applicant)
     {
+        $this->ensureAdmin();
+
         // Delete associated files
         $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
         foreach ($fileFields as $field) {
             if ($applicant->$field) {
                 Storage::disk('public')->delete($applicant->$field);
             }
+        }
+
+        // Also delete the user account so login credentials are revoked
+        if ($applicant->user) {
+            $applicant->user->tokens()->delete();
+            $applicant->user->delete();
         }
 
         $applicant->delete();

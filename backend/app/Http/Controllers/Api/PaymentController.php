@@ -13,11 +13,23 @@ use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
+    private const NO_CACHE = [
+        'Cache-Control' => 'no-cache, no-store, must-revalidate, private',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
+    ];
+
+    private function ensureAdmin(): void
+    {
+        abort_unless(auth()->user()?->role === 'admin', 403);
+    }
+
     /**
      * Display a listing of payments (admin only).
      */
     public function index(Request $request)
     {
+        $this->ensureAdmin();
         $query = Payment::with('applicant')->latest();
 
         if ($request->has('status') && $request->status !== 'all') {
@@ -89,6 +101,7 @@ class PaymentController extends Controller
      */
     public function updateStatus(Request $request, Payment $payment)
     {
+        $this->ensureAdmin();
         $validated = $request->validate([
             'status' => 'required|in:pending,verified,rejected',
         ]);
@@ -103,6 +116,7 @@ class PaymentController extends Controller
      */
     public function show(Payment $payment)
     {
+        $this->ensureAdmin();
         return new PaymentResource($payment->load('applicant'));
     }
 
@@ -134,6 +148,6 @@ class PaymentController extends Controller
         $path = storage_path('app/public/' . $payment->bukti);
         abort_unless($payment->bukti && file_exists($path), 404);
 
-        return response()->file($path);
+        return response()->file($path, self::NO_CACHE);
     }
 }

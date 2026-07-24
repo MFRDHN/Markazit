@@ -19,16 +19,16 @@ export default function DataDiri() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
 
-  useEffect(() => {
-    api.get('/applicants/me')
-      .then((res) => {
-        const d = res.data.data;
-        setApplicant(d);
-        setForm({ nama: d.nama || '', usia: d.usia || '', no_hp: d.no_hp || '', email: d.email || '', motivasi: d.motivasi || '' });
-      })
-      .catch(() => setMsg({ type: 'error', text: 'Gagal memuat data.' }))
-      .finally(() => setLoading(false));
-  }, []);
+  const loadData = () => api.get('/applicants/me')
+    .then((res) => {
+      const d = res.data.data;
+      setApplicant(d);
+      setForm({ nama: d.nama || '', usia: d.usia || '', no_hp: d.no_hp || '', email: d.email || '', motivasi: d.motivasi || '' });
+    })
+    .catch(() => setMsg({ type: 'error', text: 'Gagal memuat data.' }))
+    .finally(() => setLoading(false));
+
+  useEffect(() => { loadData(); }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleFile = (e) => setFiles({ ...files, [e.target.name]: e.target.files[0] });
@@ -45,6 +45,8 @@ export default function DataDiri() {
       fd.append('_method', 'PUT');
 
       await api.post('/applicants/me', fd);
+      setFiles({});
+      await loadData();
       setMsg({ type: 'success', text: 'Data berhasil disimpan!' });
       setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
