@@ -3,46 +3,26 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://markaz-it.web.id/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>1.0</priority>
-    <changefreq>weekly</changefreq>
-    <xhtml:link rel="alternate" hreflang="id" href="https://markaz-it.web.id/" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://markaz-it.web.id/" />
-    <xhtml:link rel="alternate" hreflang="ar" href="https://markaz-it.web.id/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://markaz-it.web.id/" />
-  </url>
-  <url>
-    <loc>https://markaz-it.web.id/program</loc>
-    <priority>0.9</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://markaz-it.web.id/biaya</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://markaz-it.web.id/kehidupan-madinah</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://markaz-it.web.id/galeri</loc>
-    <priority>0.7</priority>
-    <changefreq>monthly</changefreq>
   </url>
   <url>
     <loc>https://markaz-it.web.id/pendaftaran</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://markaz-it.web.id/tentang-kami</loc>
-    <priority>0.7</priority>
+    <loc>https://markaz-it.web.id/login</loc>
+    <lastmod>2026-07-24</lastmod>
     <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://markaz-it.web.id/blog</loc>
-    <priority>0.8</priority>
-    <changefreq>weekly</changefreq>
+    <loc>https://api.markaz-it.web.id/</loc>
+    <lastmod>2026-07-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

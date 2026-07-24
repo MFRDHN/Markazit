@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /admin
+Disallow: /dashboard/
+Disallow: /login
 
-Sitemap: https://markaz-it.or.id/sitemap.xml
+Sitemap: https://markaz-it.web.id/sitemap.xml

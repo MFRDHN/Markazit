@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 const SITE_NAME = 'Markaz IT Madinah';
-const DEFAULT_OG_IMAGE = '/og-image.jpg';
+const DEFAULT_OG_IMAGE = '/Logomarkazit.png';
 
 export default function SEOHelmet({
   title,

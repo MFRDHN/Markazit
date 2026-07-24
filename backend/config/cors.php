@@ -14,7 +14,11 @@ return [
 
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:5173'),
+        // Always include the HTTPS version if FRONTEND_URL has http://
         str_replace('http://', 'https://', env('FRONTEND_URL', 'http://localhost:5173')),
+        // Dev fallbacks
+        'http://localhost:3000',
+        'http://localhost:5173',
     ],
 
     'allowed_origins_patterns' => [],
