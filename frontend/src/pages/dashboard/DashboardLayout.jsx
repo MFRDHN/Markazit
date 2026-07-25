@@ -28,6 +28,8 @@ export default function DashboardLayout() {
     }
     localStorage.removeItem('user_token');
     localStorage.removeItem('user_data');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
     navigate('/login');
   };
 

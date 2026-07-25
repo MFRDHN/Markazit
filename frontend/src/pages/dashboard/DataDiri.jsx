@@ -25,7 +25,10 @@ export default function DataDiri() {
       setApplicant(d);
       setForm({ nama: d.nama || '', usia: d.usia || '', no_hp: d.no_hp || '', email: d.email || '', motivasi: d.motivasi || '' });
     })
-    .catch(() => setMsg({ type: 'error', text: 'Gagal memuat data.' }))
+    .catch((err) => {
+      const msg = err.response?.data?.message || err.message || 'Gagal memuat data.';
+      setMsg({ type: 'error', text: msg });
+    })
     .finally(() => setLoading(false));
 
   useEffect(() => { loadData(); }, []);
@@ -50,7 +53,11 @@ export default function DataDiri() {
       setMsg({ type: 'success', text: 'Data berhasil disimpan!' });
       setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {
-      setMsg({ type: 'error', text: 'Gagal menyimpan data.' });
+      const msg = err.response?.data?.message
+        || (err.response?.data?.errors ? Object.values(err.response.data.errors).flat().join('\n') : null)
+        || err.message
+        || 'Gagal menyimpan data.';
+      setMsg({ type: 'error', text: msg });
     } finally {
       setSaving(false);
     }

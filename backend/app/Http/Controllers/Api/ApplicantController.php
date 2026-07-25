@@ -80,7 +80,8 @@ class ApplicantController extends Controller
                 'user_id' => $user->id,
                 'nama' => explode('@', $validated['email'])[0],
                 'usia' => 18,
-                'no_hp' => '-',
+                // ponytail: unique per user to satisfy DB unique constraint
+                'no_hp' => '-' . $user->id,
                 'email' => $validated['email'],
                 'status' => 'pending',
             ]);
@@ -110,7 +111,9 @@ class ApplicantController extends Controller
     {
         $applicant = $request->user()->applicant;
         if (!$applicant) {
-            return response()->json(['message' => 'Data tidak ditemukan.'], 404);
+            return response()->json([
+                'message' => 'Data pendaftar tidak ditemukan. Silakan daftar terlebih dahulu.',
+            ], 404);
         }
         return new ApplicantResource($applicant->load('payments'));
     }
@@ -162,7 +165,9 @@ class ApplicantController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Applicant update failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Gagal mengupdate data.'], 500);
+            return response()->json([
+                'message' => 'Gagal menyimpan data: ' . $e->getMessage(),
+            ], 500);
         }
     }
 

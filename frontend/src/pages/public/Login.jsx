@@ -21,6 +21,8 @@ export default function Login() {
 
     try {
       const res = await api.post('/login', form);
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
       localStorage.setItem('user_token', res.data.token);
       localStorage.setItem('user_data', JSON.stringify(res.data.user));
       navigate('/dashboard');
