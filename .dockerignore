@@ -1,0 +1,7 @@
+.git
+node_modules
+vendor
+backend/storage/app
+backend/bootstrap/cache
+*.zip
+.env

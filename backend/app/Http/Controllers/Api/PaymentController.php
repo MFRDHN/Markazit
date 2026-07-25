@@ -144,10 +144,8 @@ class PaymentController extends Controller
     {
         $applicant = $request->user()->applicant;
         abort_unless($applicant && $payment->applicant_id === $applicant->id, 403);
+        abort_unless($payment->bukti && Storage::disk('public')->exists($payment->bukti), 404);
 
-        $path = storage_path('app/public/' . $payment->bukti);
-        abort_unless($payment->bukti && file_exists($path), 404);
-
-        return response()->file($path, self::NO_CACHE);
+        return Storage::disk('public')->response($payment->bukti, null, self::NO_CACHE);
     }
 }

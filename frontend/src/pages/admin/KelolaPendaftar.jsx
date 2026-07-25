@@ -34,6 +34,7 @@ export default function KelolaPendaftar() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [fotoBlob, setFotoBlob] = useState(null);
+  const currentApplicantIdRef = useRef(null); // ponytail: ref beats closure for race condition guard
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -84,16 +85,16 @@ export default function KelolaPendaftar() {
     }
   };
 
-  // Fetch foto — clear first so old photo never persists
+  // Fetch foto for selected applicant — ref-based guard prevents stale response overwrite
   useEffect(() => {
     setFotoBlob(null);
     if (!selectedApplicant?.foto) return;
     const id = selectedApplicant.id;
+    currentApplicantIdRef.current = id;
     api.get(`/applicants/${id}/file/foto`, { responseType: 'blob' })
       .then(r => {
-        // Only apply if still viewing same applicant (no rapid switch race)
-        if (selectedApplicant?.id === id) {
-          setFotoBlob(URL.createObjectURL(r.data));
+        if (currentApplicantIdRef.current === id) {
+          setFotoBlob(prev => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(r.data); });
         }
       })
       .catch(() => {});
@@ -288,16 +289,16 @@ export default function KelolaPendaftar() {
                 <h5 className="font-bold text-primary-950 text-sm mb-3">Dokumen Lampiran</h5>
                 <div className="space-y-2">
                   {selectedApplicant.dokumen_ktp && (
-                    <DocLink label="KTP" path={selectedApplicant.dokumen_ktp} applicantId={selectedApplicant.id} />
+                    <DocLink label="KTP" field="dokumen_ktp" applicantId={selectedApplicant.id} />
                   )}
                   {selectedApplicant.dokumen_kk && (
-                    <DocLink label="Kartu Keluarga" path={selectedApplicant.dokumen_kk} applicantId={selectedApplicant.id} />
+                    <DocLink label="Kartu Keluarga" field="dokumen_kk" applicantId={selectedApplicant.id} />
                   )}
                   {selectedApplicant.dokumen_paspor && (
-                    <DocLink label="Paspor" path={selectedApplicant.dokumen_paspor} applicantId={selectedApplicant.id} />
+                    <DocLink label="Paspor" field="dokumen_paspor" applicantId={selectedApplicant.id} />
                   )}
                   {selectedApplicant.foto && (
-                    <DocLink label="Foto" path={selectedApplicant.foto} applicantId={selectedApplicant.id} />
+                    <DocLink label="Foto" field="foto" applicantId={selectedApplicant.id} />
                   )}
                 </div>
               </div>
@@ -360,14 +361,10 @@ export default function KelolaPendaftar() {
 }
 
 // Helper: file link with view + download (uses axios to avoid 401 from direct href)
-function DocLink({ label, path, applicantId }) {
-  const field = path?.startsWith('dokumen_ktp') ? 'dokumen_ktp'
-    : path?.startsWith('dokumen_kk') ? 'dokumen_kk'
-    : path?.startsWith('dokumen_paspor') ? 'dokumen_paspor'
-    : 'foto';
+function DocLink({ label, field, applicantId }) {
   const viewUrl = `/applicants/${applicantId}/file/${field}`;
   const dlUrl = `/applicants/${applicantId}/download/${field}`;
-  const isImage = path?.match(/\.(jpg|jpeg|png)$/i);
+  const isImage = field === 'foto';
 
   return (
     <div className="flex items-center gap-2">

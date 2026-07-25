@@ -178,9 +178,15 @@ class ApplicantController extends Controller
     {
         $this->ensureAdmin();
         $this->validateFileField($field, $applicant);
-        $path = $this->resolveFilePath($field, $applicant);
 
-        return response()->file($path, self::NO_CACHE);
+        $relativePath = $applicant->$field;
+        Log::debug('viewFile', ['applicant_id' => $applicant->id, 'field' => $field, 'path' => $relativePath]);
+
+        if (!Storage::disk('public')->exists($relativePath)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($relativePath, null, self::NO_CACHE);
     }
 
     /**
@@ -190,9 +196,12 @@ class ApplicantController extends Controller
     {
         $this->ensureAdmin();
         $this->validateFileField($field, $applicant);
-        $path = $this->resolveFilePath($field, $applicant);
 
-        return response()->download($path, $field . '_' . $applicant->nama . '.' . pathinfo($path, PATHINFO_EXTENSION));
+        $relativePath = $applicant->$field;
+        $ext = pathinfo($relativePath, PATHINFO_EXTENSION);
+        $filename = $field . '_' . $applicant->nama . '.' . $ext;
+
+        return Storage::disk('public')->download($relativePath, $filename, self::NO_CACHE);
     }
 
     /**
@@ -204,22 +213,20 @@ class ApplicantController extends Controller
         abort_unless($applicant, 404);
 
         $this->validateFileField($field, $applicant);
-        $path = $this->resolveFilePath($field, $applicant);
 
-        return response()->file($path, self::NO_CACHE);
+        $relativePath = $applicant->$field;
+
+        if (!Storage::disk('public')->exists($relativePath)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($relativePath, null, self::NO_CACHE);
     }
 
     private function validateFileField(string $field, $applicant): void
     {
         $allowed = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
         abort_unless(in_array($field, $allowed) && $applicant->$field, 404);
-    }
-
-    private function resolveFilePath(string $field, $applicant): string
-    {
-        $path = storage_path('app/public/' . $applicant->$field);
-        abort_unless(file_exists($path), 404);
-        return $path;
     }
 
     /**
