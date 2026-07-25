@@ -17,4 +17,9 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
+// Guard for shared hosting where REMOTE_ADDR might be null
+if (!isset($_SERVER['REMOTE_ADDR'])) {
+    $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+}
+
 $app->handleRequest(Request::capture());

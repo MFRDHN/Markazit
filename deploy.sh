@@ -27,7 +27,7 @@ fi
 
 # 4. Composer (production only)
 export COMPOSER_ALLOW_SUPERUSER=1
-composer install --no-dev --optimize-autoloader --no-interaction
+composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # 5. Storage
 php artisan storage:link --force
