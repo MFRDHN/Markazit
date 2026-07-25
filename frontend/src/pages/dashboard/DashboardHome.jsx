@@ -49,7 +49,7 @@ export default function DashboardHome() {
               {[
                 ['Nama Lengkap', data.nama],
                 ['Usia', `${data.usia} Tahun`],
-                ['No. HP', data.no_hp],
+                ['No. HP', data.no_hp && !data.no_hp.startsWith('-') ? data.no_hp : 'Belum diisi'],
                 ['Email', data.email],
                 ['Status', statusBadge(data.status)],
               ].map(([label, value]) => (

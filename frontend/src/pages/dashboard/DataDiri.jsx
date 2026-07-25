@@ -23,7 +23,9 @@ export default function DataDiri() {
     .then((res) => {
       const d = res.data.data;
       setApplicant(d);
-      setForm({ nama: d.nama || '', usia: d.usia || '', no_hp: d.no_hp || '', email: d.email || '', motivasi: d.motivasi || '' });
+      // ponytail: hide default no_hp placeholder (e.g. -13) in form
+      const no_hp = (d.no_hp && !d.no_hp.startsWith('-')) ? d.no_hp : '';
+      setForm({ nama: d.nama || '', usia: d.usia || '', no_hp, email: d.email || '', motivasi: d.motivasi || '' });
     })
     .catch((err) => {
       const msg = err.response?.data?.message || err.message || 'Gagal memuat data.';
@@ -47,9 +49,18 @@ export default function DataDiri() {
       Object.entries(files).forEach(([k, v]) => { if (v) fd.append(k, v); });
       fd.append('_method', 'PUT');
 
-      await api.post('/applicants/me', fd);
+      const res = await api.post('/applicants/me', fd);
       setFiles({});
       await loadData();
+      // Update sidebar name
+      if (res.data?.data?.nama) {
+        try {
+          const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+          userData.name = res.data.data.nama;
+          localStorage.setItem('user_data', JSON.stringify(userData));
+          window.dispatchEvent(new Event('user_data_updated'));
+        } catch {}
+      }
       setMsg({ type: 'success', text: 'Data berhasil disimpan!' });
       setTimeout(() => setMsg({ type: '', text: '' }), 3000);
     } catch (err) {

@@ -16,12 +16,13 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
 
-  useEffect(() => {
+  const loadUser = () => {
     const raw = localStorage.getItem('user_data');
     if (raw) {
       try { setUser(JSON.parse(raw)); } catch {}
     }
-  }, []);
+  };
+  useEffect(() => { loadUser(); window.addEventListener('user_data_updated', loadUser); return () => window.removeEventListener('user_data_updated', loadUser); }, []);
 
   const handleLogout = () => setShowLogout(true);
 

@@ -3,6 +3,9 @@ import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet, FaDown
 import api from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
+// ponytail: show 'Belum diisi' for default no_hp placeholders (e.g. -13)
+const displayNoHp = (v) => (v && !v.startsWith('-')) ? v : 'Belum diisi';
+
 // ponytail: fetch protected files via axios (Bearer token) instead of direct links (401/404)
 const openFile = async (url) => {
   try {
@@ -31,6 +34,8 @@ export default function KelolaPendaftar() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [fotoBlob, setFotoBlob] = useState(null);
+  const fotoBlobRef = useRef(null);
+  const cancelRef = useRef(false);
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -198,7 +203,7 @@ export default function KelolaPendaftar() {
                       <td className="px-6 py-4">
                         <p className="font-bold text-primary-950 mb-1">{app.nama}</p>
                         <p className="text-xs">{app.email}</p>
-                        <p className="text-xs">{app.no_hp}</p>
+                        <p className="text-xs">{displayNoHp(app.no_hp)}</p>
                       </td>
                       <td className="px-6 py-4">{app.usia} Thn</td>
                       <td className="px-6 py-4">
@@ -271,7 +276,7 @@ export default function KelolaPendaftar() {
                 </div>
                 <div className="grid grid-cols-3 text-sm">
                   <span className="text-primary-600">No. HP</span>
-                  <span className="col-span-2 text-primary-950">{selectedApplicant.no_hp}</span>
+                  <span className="col-span-2 text-primary-950">{displayNoHp(selectedApplicant.no_hp)}</span>
                 </div>
                 <div className="grid grid-cols-3 text-sm">
                   <span className="text-primary-600">Usia</span>
