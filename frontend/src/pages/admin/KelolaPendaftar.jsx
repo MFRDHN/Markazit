@@ -34,8 +34,6 @@ export default function KelolaPendaftar() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [fotoBlob, setFotoBlob] = useState(null);
-  const fotoBlobRef = useRef(null);
-  const cancelRef = useRef(false);
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -86,23 +84,20 @@ export default function KelolaPendaftar() {
     }
   };
 
-  // Fetch foto blob for selected applicant
+  // Fetch foto — clear first so old photo never persists
   useEffect(() => {
-    if (!selectedApplicant?.foto) { setFotoBlob(null); return; }
-    // Revoke previous blob before fetching new one
-    if (fotoBlobRef.current) { URL.revokeObjectURL(fotoBlobRef.current); fotoBlobRef.current = null; }
-    cancelRef.current = false;
-    api.get(`/applicants/${selectedApplicant.id}/file/foto`, { responseType: 'blob' })
+    setFotoBlob(null);
+    if (!selectedApplicant?.foto) return;
+    const id = selectedApplicant.id;
+    api.get(`/applicants/${id}/file/foto`, { responseType: 'blob' })
       .then(r => {
-        if (!cancelRef.current) {
-          const url = URL.createObjectURL(r.data);
-          fotoBlobRef.current = url;
-          setFotoBlob(url);
+        // Only apply if still viewing same applicant (no rapid switch race)
+        if (selectedApplicant?.id === id) {
+          setFotoBlob(URL.createObjectURL(r.data));
         }
       })
-      .catch(() => { if (!cancelRef.current) setFotoBlob(null); });
-    return () => { cancelRef.current = true; };
-  }, [selectedApplicant?.id, selectedApplicant?.foto]);
+      .catch(() => {});
+  }, [selectedApplicant?.id]);
 
   const deleteApplicant = async (id) => {
     try {
@@ -255,7 +250,7 @@ export default function KelolaPendaftar() {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-xl bg-cream-200 overflow-hidden shrink-0 border border-cream-300">
                   {fotoBlob ? (
-                    <img src={fotoBlob} alt="Foto" className="w-full h-full object-cover" />
+                    <img key={selectedApplicant.id} src={fotoBlob} alt="Foto" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-primary-500"><FaFileImage /></div>
                   )}
