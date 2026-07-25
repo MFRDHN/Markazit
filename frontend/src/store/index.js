@@ -13,8 +13,7 @@ export const useAuthStore = create((set) => ({
     try {
       const response = await api.post('/admin/login', { email, password });
       const { user, token } = response.data;
-      localStorage.removeItem('user_token');
-      localStorage.removeItem('user_data');
+      // ponytail: don't clear user_token — admin & user sessions coexist in different tabs
       localStorage.setItem('admin_token', token);
       localStorage.setItem('admin_user', JSON.stringify(user));
       set({ user, token, isAuthenticated: true, loading: false });
@@ -36,8 +35,7 @@ export const useAuthStore = create((set) => ({
     }
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
-    localStorage.removeItem('user_token');
-    localStorage.removeItem('user_data');
+    // ponytail: don't touch user_token/user_data — only clean up admin session
     set({ user: null, token: null, isAuthenticated: false });
   },
 

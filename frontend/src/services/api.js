@@ -27,10 +27,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('admin_token');
-      localStorage.removeItem('admin_user');
-      localStorage.removeItem('user_token');
-      localStorage.removeItem('user_data');
+      // ponytail: only clear the token type that was in use — admin & user sessions coexist
+      const wasAdmin = !!localStorage.getItem('admin_token');
+      if (wasAdmin) {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+      } else {
+        localStorage.removeItem('user_token');
+        localStorage.removeItem('user_data');
+      }
       const path = window.location.pathname;
       if (path.startsWith('/admin')) window.location.href = '/admin/login';
       else if (path.startsWith('/dashboard')) window.location.href = '/login';

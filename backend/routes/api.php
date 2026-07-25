@@ -115,4 +115,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/payments', [PaymentController::class, 'index']);
     Route::get('/payments/{payment}', [PaymentController::class, 'show']);
     Route::put('/payments/{payment}/status', [PaymentController::class, 'updateStatus']);
+    Route::get('/payments/{payment}/file', [PaymentController::class, 'viewFile']);
 });

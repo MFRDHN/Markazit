@@ -148,4 +148,15 @@ class PaymentController extends Controller
 
         return Storage::disk('public')->response($payment->bukti, null, self::NO_CACHE);
     }
+
+    /**
+     * View payment proof file (admin only).
+     */
+    public function viewFile(Payment $payment)
+    {
+        $this->ensureAdmin();
+        abort_unless($payment->bukti && Storage::disk('public')->exists($payment->bukti), 404);
+
+        return Storage::disk('public')->response($payment->bukti, null, self::NO_CACHE);
+    }
 }

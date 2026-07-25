@@ -100,6 +100,23 @@ export default function KelolaPendaftar() {
       .catch(() => {});
   }, [selectedApplicant?.id]);
 
+  const updatePaymentStatus = async (paymentId, status) => {
+    setIsUpdating(true);
+    try {
+      await api.put(`/payments/${paymentId}/status`, { status });
+      fetchApplicants();
+      // Refresh selected applicant
+      if (selectedApplicant) {
+        const res = await api.get(`/applicants/${selectedApplicant.id}`);
+        setSelectedApplicant(res.data.data);
+      }
+    } catch (error) {
+      alert('Gagal memperbarui status pembayaran');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const deleteApplicant = async (id) => {
     try {
       await api.delete(`/applicants/${id}`);
@@ -162,16 +179,32 @@ export default function KelolaPendaftar() {
             updateStatus(confirmAction.id, confirmAction.value);
           } else if (confirmAction?.type === 'allow-payment') {
             allowPayment(confirmAction.id);
+          } else if (confirmAction?.type === 'verify-payment') {
+            updatePaymentStatus(confirmAction.id, 'verified');
+          } else if (confirmAction?.type === 'reject-payment') {
+            updatePaymentStatus(confirmAction.id, 'rejected');
           }
         }}
-        title={confirmAction?.type === 'delete' ? 'Hapus Pendaftar' : confirmAction?.type === 'allow-payment' ? 'Izinkan Pembayaran' : 'Ubah Status'}
-        message={confirmAction?.type === 'delete'
-          ? 'Yakin ingin menghapus pendaftar ini? Tindakan ini tidak dapat dibatalkan dan akan menghapus semua file terkait.'
-          : confirmAction?.type === 'allow-payment'
-          ? 'Izinkan pendaftar ini untuk mengirim bukti pembayaran?'
-          : `Yakin ingin mengubah status menjadi ${confirmAction?.value}?`}
-        confirmText={confirmAction?.type === 'delete' ? 'Ya, Hapus' : 'Ya, Izinkan'}
-        danger={confirmAction?.type === 'delete'}
+        title={
+          confirmAction?.type === 'delete' ? 'Hapus Pendaftar'
+          : confirmAction?.type === 'allow-payment' ? 'Izinkan Pembayaran'
+          : confirmAction?.type === 'verify-payment' ? 'Verifikasi Pembayaran'
+          : confirmAction?.type === 'reject-payment' ? 'Tolak Pembayaran'
+          : 'Ubah Status'
+        }
+        message={
+          confirmAction?.type === 'delete' ? 'Yakin ingin menghapus pendaftar ini? Tindakan ini tidak dapat dibatalkan dan akan menghapus semua file terkait.'
+          : confirmAction?.type === 'allow-payment' ? 'Izinkan pendaftar ini untuk mengirim bukti pembayaran?'
+          : confirmAction?.type === 'verify-payment' ? 'Tandai pembayaran ini sebagai terverifikasi?'
+          : confirmAction?.type === 'reject-payment' ? 'Tolak pembayaran ini? Pendaftar akan melihat status ditolak.'
+          : `Yakin ingin mengubah status menjadi ${confirmAction?.value}?`
+        }
+        confirmText={
+          confirmAction?.type === 'delete' ? 'Ya, Hapus'
+          : confirmAction?.type === 'reject-payment' ? 'Ya, Tolak'
+          : 'Ya, Izinkan'
+        }
+        danger={confirmAction?.type === 'delete' || confirmAction?.type === 'reject-payment'}
       />
 
       {/* Main Table Layout */}
@@ -302,6 +335,63 @@ export default function KelolaPendaftar() {
                   )}
                 </div>
               </div>
+
+              {/* Riwayat Pembayaran */}
+              {selectedApplicant.payments?.length > 0 && (
+                <div>
+                  <h5 className="font-bold text-primary-950 text-sm mb-3">Riwayat Pembayaran</h5>
+                  <div className="space-y-3">
+                    {selectedApplicant.payments.map(p => {
+                      const payStatus = p.status || 'pending';
+                      const statusColor = payStatus === 'verified' ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                        : payStatus === 'rejected' ? 'bg-red-500/10 text-red-600 border-red-500/20'
+                        : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+                      return (
+                        <div key={p.id} className="bg-cream-100 rounded-xl p-3 border border-cream-200 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold text-primary-950">
+                              Rp {Number(p.jumlah).toLocaleString('id-ID')}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${statusColor}`}>
+                              {payStatus.toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-primary-500">{new Date(p.created_at).toLocaleDateString('id-ID')}</span>
+                            <div className="flex gap-1.5">
+                              {p.bukti && (
+                                <button onClick={() => openFile(`/payments/${p.id}/file`)}
+                                  className="text-xs inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-cream-200 rounded-lg text-primary-600 hover:bg-cream-200 transition-colors">
+                                  <FaFileImage /> Lihat Bukti
+                                </button>
+                              )}
+                              {payStatus === 'pending' && (
+                                <>
+                                  <button onClick={() => setConfirmAction({ type: 'verify-payment', id: p.id })}
+                                    disabled={isUpdating}
+                                    className="text-xs inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-colors">
+                                    <FaCheck /> Verifikasi
+                                  </button>
+                                  <button onClick={() => setConfirmAction({ type: 'reject-payment', id: p.id })}
+                                    disabled={isUpdating}
+                                    className="text-xs inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-500/10 text-red-600 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">
+                                    <FaTimes /> Tolak
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          {p.norek_pengirim && (
+                            <div className="text-xs text-primary-500 pt-1 border-t border-cream-200">
+                              Rek: {p.norek_pengirim}{p.bank_pengirim ? ` (${p.bank_pengirim})` : ''}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Motivasi */}
               <div>
