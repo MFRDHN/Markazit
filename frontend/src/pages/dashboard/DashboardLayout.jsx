@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { FaTachometerAlt, FaUser, FaWallet, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
 import api from '../../services/api';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const navItems = [
   { to: '/dashboard', label: 'Ringkasan', icon: FaTachometerAlt, end: true },
@@ -13,6 +14,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem('user_data');
@@ -21,7 +23,9 @@ export default function DashboardLayout() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = () => setShowLogout(true);
+
+  const confirmLogout = () => {
     const token = localStorage.getItem('user_token');
     if (token) {
       api.post('/logout').catch(() => {});
@@ -95,6 +99,16 @@ export default function DashboardLayout() {
 
         <Outlet />
       </main>
+
+      <ConfirmModal
+        isOpen={showLogout}
+        onClose={() => setShowLogout(false)}
+        onConfirm={confirmLogout}
+        title="Konfirmasi Logout"
+        message="Yakin ingin keluar dari dashboard?"
+        confirmText="Ya, Keluar"
+        cancelText="Batal"
+      />
     </div>
   );
 }

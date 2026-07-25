@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuthStore } from '../../store';
+import ConfirmModal from '../common/ConfirmModal';
 import { 
   FaHome, FaUsers, FaBook, FaImages, 
   FaQuoteLeft, FaFileAlt, FaSignOutAlt, FaBars, FaTimes 
@@ -12,6 +13,7 @@ export default function AdminLayout() {
   const { isAuthenticated, user, logout, checkAuth } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showLogout, setShowLogout] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -134,7 +136,7 @@ export default function AdminLayout() {
               </div>
             </div>
             <button
-              onClick={logout}
+              onClick={() => setShowLogout(true)}
               className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors"
             >
               <FaSignOutAlt /> Logout
@@ -156,6 +158,16 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ConfirmModal
+        isOpen={showLogout}
+        onClose={() => setShowLogout(false)}
+        onConfirm={logout}
+        title="Konfirmasi Logout"
+        message="Yakin ingin keluar dari admin panel?"
+        confirmText="Ya, Keluar"
+        cancelText="Batal"
+      />
     </>
   );
 }

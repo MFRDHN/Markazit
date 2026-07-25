@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaSearch, FaEye, FaTrash, FaCheck, FaTimes, FaSpinner, FaWallet, FaDownload, FaFile, FaFileImage, FaFilePdf } from 'react-icons/fa';
 import api from '../../services/api';
 import ConfirmModal from '../../components/common/ConfirmModal';
@@ -84,11 +84,19 @@ export default function KelolaPendaftar() {
   // Fetch foto blob for selected applicant
   useEffect(() => {
     if (!selectedApplicant?.foto) { setFotoBlob(null); return; }
-    let cancel = false;
+    // Revoke previous blob before fetching new one
+    if (fotoBlobRef.current) { URL.revokeObjectURL(fotoBlobRef.current); fotoBlobRef.current = null; }
+    cancelRef.current = false;
     api.get(`/applicants/${selectedApplicant.id}/file/foto`, { responseType: 'blob' })
-      .then(r => { if (!cancel) setFotoBlob(URL.createObjectURL(r.data)); })
-      .catch(() => setFotoBlob(null));
-    return () => { cancel = true; if (fotoBlob) URL.revokeObjectURL(fotoBlob); };
+      .then(r => {
+        if (!cancelRef.current) {
+          const url = URL.createObjectURL(r.data);
+          fotoBlobRef.current = url;
+          setFotoBlob(url);
+        }
+      })
+      .catch(() => { if (!cancelRef.current) setFotoBlob(null); });
+    return () => { cancelRef.current = true; };
   }, [selectedApplicant?.id, selectedApplicant?.foto]);
 
   const deleteApplicant = async (id) => {
