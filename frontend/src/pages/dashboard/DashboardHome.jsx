@@ -72,7 +72,7 @@ export default function DashboardHome() {
               <h2 className="font-bold text-primary-950 text-lg">Pembayaran</h2>
             </div>
             <p className="text-3xl font-bold text-green-600 mb-1">Rp {(data.payments || []).reduce((s, p) => s + Number(p.jumlah), 0).toLocaleString('id-ID')}</p>
-            <p className="text-sm text-primary-600 mb-5">terbayar dari Rp 2.500.000 (pendaftaran)</p>
+            <p className="text-sm text-primary-600 mb-5">total pembayaran yang tercatat</p>
             <Link to="/dashboard/pembayaran" className="inline-flex items-center text-sm font-medium text-primary-400 hover:text-primary-700 transition-colors">
               Kelola Pembayaran →
             </Link>

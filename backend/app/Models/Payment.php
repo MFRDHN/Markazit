@@ -12,6 +12,7 @@ class Payment extends Model
         'jumlah',
         'norek_pengirim',
         'bank_pengirim',
+        'keterangan',
         'status',
         'bukti',
     ];

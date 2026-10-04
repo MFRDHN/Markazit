@@ -6,20 +6,28 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 // ponytail: show 'Belum diisi' for default no_hp placeholders (e.g. -13)
 const displayNoHp = (v) => (v && !v.startsWith('-')) ? v : 'Belum diisi';
 
-// ponytail: fetch protected files via axios (Bearer token) instead of direct links (401/404)
+// ponytail: open tab first (user gesture) so popup blocker doesn't kill window.open after await
 const openFile = async (url) => {
+  const w = window.open('', '_blank');
   try {
     const res = await api.get(url, { responseType: 'blob' });
-    window.open(URL.createObjectURL(res.data), '_blank');
-  } catch { alert('Gagal membuka file'); }
+    w.location.href = URL.createObjectURL(res.data);
+  } catch {
+    w?.close();
+    alert('Gagal membuka file');
+  }
 };
 const downloadFile = async (url, name) => {
   try {
     const res = await api.get(url, { responseType: 'blob' });
+    // ponytail: derive ext from MIME — without it Windows saves extensionless files it can't open
+    const ext = { 'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/png': '.png' }[res.data.type] || '';
+    const href = URL.createObjectURL(res.data);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(res.data);
-    a.download = name;
+    a.href = href;
+    a.download = `${name}${ext}`;
     a.click();
+    URL.revokeObjectURL(href);
   } catch { alert('Gagal mengunduh file'); }
 };
 
@@ -127,6 +135,19 @@ export default function KelolaPendaftar() {
     }
   };
 
+  const deletePayment = async (paymentId) => {
+    try {
+      await api.delete(`/payments/${paymentId}`);
+      fetchApplicants();
+      if (selectedApplicant) {
+        const res = await api.get(`/applicants/${selectedApplicant.id}`);
+        setSelectedApplicant(res.data.data);
+      }
+    } catch (error) {
+      alert('Gagal menghapus pembayaran');
+    }
+  };
+
   const statusColors = {
     pending: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
     review: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
@@ -183,6 +204,8 @@ export default function KelolaPendaftar() {
             updatePaymentStatus(confirmAction.id, 'verified');
           } else if (confirmAction?.type === 'reject-payment') {
             updatePaymentStatus(confirmAction.id, 'rejected');
+          } else if (confirmAction?.type === 'delete-payment') {
+            deletePayment(confirmAction.id);
           }
         }}
         title={
@@ -190,6 +213,7 @@ export default function KelolaPendaftar() {
           : confirmAction?.type === 'allow-payment' ? 'Izinkan Pembayaran'
           : confirmAction?.type === 'verify-payment' ? 'Verifikasi Pembayaran'
           : confirmAction?.type === 'reject-payment' ? 'Tolak Pembayaran'
+          : confirmAction?.type === 'delete-payment' ? 'Hapus Pembayaran'
           : 'Ubah Status'
         }
         message={
@@ -197,14 +221,16 @@ export default function KelolaPendaftar() {
           : confirmAction?.type === 'allow-payment' ? 'Izinkan pendaftar ini untuk mengirim bukti pembayaran?'
           : confirmAction?.type === 'verify-payment' ? 'Tandai pembayaran ini sebagai terverifikasi?'
           : confirmAction?.type === 'reject-payment' ? 'Tolak pembayaran ini? Pendaftar akan melihat status ditolak.'
+          : confirmAction?.type === 'delete-payment' ? 'Yakin ingin menghapus pembayaran ini? File bukti juga akan dihapus.'
           : `Yakin ingin mengubah status menjadi ${confirmAction?.value}?`
         }
         confirmText={
           confirmAction?.type === 'delete' ? 'Ya, Hapus'
           : confirmAction?.type === 'reject-payment' ? 'Ya, Tolak'
+          : confirmAction?.type === 'delete-payment' ? 'Ya, Hapus'
           : 'Ya, Izinkan'
         }
-        danger={confirmAction?.type === 'delete' || confirmAction?.type === 'reject-payment'}
+        danger={confirmAction?.type === 'delete' || confirmAction?.type === 'reject-payment' || confirmAction?.type === 'delete-payment'}
       />
 
       {/* Main Table Layout */}
@@ -315,6 +341,12 @@ export default function KelolaPendaftar() {
                   <span className="text-primary-600">Tanggal</span>
                   <span className="col-span-2 text-primary-950">{new Date(selectedApplicant.created_at).toLocaleString('id-ID')}</span>
                 </div>
+                {selectedApplicant.registrasi_ip && (
+                  <div className="grid grid-cols-3 text-sm">
+                    <span className="text-primary-600">IP Daftar</span>
+                    <span className="col-span-2 text-primary-950 font-mono">{selectedApplicant.registrasi_ip}</span>
+                  </div>
+                )}
               </div>
 
               {/* Dokumen */}
@@ -379,8 +411,18 @@ export default function KelolaPendaftar() {
                                   </button>
                                 </>
                               )}
+                              <button onClick={() => setConfirmAction({ type: 'delete-payment', id: p.id })}
+                                disabled={isUpdating}
+                                className="text-xs inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-500/10 text-red-600 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">
+                                <FaTrash /> Hapus
+                              </button>
                             </div>
                           </div>
+                          {p.keterangan && (
+                            <div className="text-xs text-primary-500 pt-1 border-t border-cream-200">
+                              Keterangan: {p.keterangan}
+                            </div>
+                          )}
                           {p.norek_pengirim && (
                             <div className="text-xs text-primary-500 pt-1 border-t border-cream-200">
                               Rek: {p.norek_pengirim}{p.bank_pengirim ? ` (${p.bank_pengirim})` : ''}

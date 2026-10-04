@@ -17,11 +17,13 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // Admin User
         // ==========================================
-        User::create([
-            'name' => 'Admin Markaz IT',
-            'email' => 'fajri@gmail.com',
-            'password' => Hash::make('password123'),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'fajri@gmail.com'],
+            [
+                'name' => 'Admin Markaz IT',
+                'password' => Hash::make('password123'),
+            ],
+        );
 
         // ==========================================
         // Programs
@@ -54,7 +56,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
-            Program::create($program);
+            Program::firstOrCreate(['nama' => $program['nama']], $program);
         }
 
         // ==========================================
@@ -88,7 +90,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($testimonials as $testimonial) {
-            Testimonial::create($testimonial);
+            Testimonial::firstOrCreate(['nama' => $testimonial['nama'], 'isi' => $testimonial['isi']], $testimonial);
         }
 
         // ==========================================
@@ -104,7 +106,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($galleries as $gallery) {
-            Gallery::create($gallery);
+            Gallery::firstOrCreate(['judul' => $gallery['judul']], $gallery);
         }
 
         // ==========================================
@@ -135,7 +137,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($blogs as $blog) {
-            Blog::create($blog);
+            Blog::firstOrCreate(['slug' => $blog['slug']], $blog);
         }
         // ==========================================
         // Applicants
@@ -174,7 +176,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($applicants as $applicant) {
-            \App\Models\Applicant::create($applicant);
+            \App\Models\Applicant::firstOrCreate(['email' => $applicant['email']], $applicant);
         }
     }
 }

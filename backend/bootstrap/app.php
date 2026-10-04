@@ -18,10 +18,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
             'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
 
-        // Trust proxies (Cloudflare, load balancer)
-        $middleware->trustProxies(at: '*');
+        // ponytail: trust only private-network proxies; '*' let clients spoof
+        // X-Forwarded-For and bypass IP rate limits. Add CDN ranges here if
+        // the site ever goes behind Cloudflare.
+        $middleware->trustProxies(at: [
+            '127.0.0.1',
+            '10.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Consistent JSON error response
@@ -29,8 +37,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson() || $request->is('api/*')) {
                 $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
                 return response()->json([
-                    'message' => $e->getMessage(),
-                    'errors' => method_exists($e, 'errors') ? $e->errors() : null,
+                    // Never leak internal messages (DB details etc.) for server errors
+                    'message' => $status >= 500 ? 'Terjadi kesalahan pada server.' : $e->getMessage(),
+                    'errors' => $status < 500 && method_exists($e, 'errors') ? $e->errors() : null,
                 ], $status);
             }
         });

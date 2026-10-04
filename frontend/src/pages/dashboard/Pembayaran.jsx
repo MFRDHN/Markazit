@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaWallet, FaUpload, FaFileInvoice, FaExternalLinkAlt, FaCheck, FaTimes, FaHourglassHalf, FaUniversity } from 'react-icons/fa';
+import { FaSpinner, FaWallet, FaUpload, FaFileInvoice, FaExternalLinkAlt, FaCheck, FaTimes, FaHourglassHalf, FaUniversity, FaTrash } from 'react-icons/fa';
 import api from '../../services/api';
 import SEOHelmet from '../../components/common/SEOHelmet';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
-// ponytail: fetch via axios to avoid 401 from direct href
+// ponytail: open tab first (user gesture) so popup blocker doesn't kill window.open after await
 const openFile = async (url) => {
+  const w = window.open('', '_blank');
   try {
     const res = await api.get(url, { responseType: 'blob' });
-    window.open(URL.createObjectURL(res.data), '_blank');
-  } catch { alert('Gagal membuka file'); }
+    w.location.href = URL.createObjectURL(res.data);
+  } catch {
+    w?.close();
+    alert('Gagal membuka file');
+  }
 };
 
 export default function Pembayaran() {
@@ -17,6 +22,9 @@ export default function Pembayaran() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
   const [bukti, setBukti] = useState(null);
+  const [jumlah, setJumlah] = useState('');
+  const [keterangan, setKeterangan] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const loadPayments = () => {
     api.get('/payments/mine')
@@ -34,22 +42,34 @@ export default function Pembayaran() {
     setMsg({ type: '', text: '' });
 
     try {
-      const me = await api.get('/applicants/me');
-      const applicantId = me.data.data.id;
-
       const fd = new FormData();
-      fd.append('applicant_id', applicantId);
-      fd.append('jumlah', '2500000');
+      fd.append('jumlah', jumlah);
+      fd.append('keterangan', keterangan);
       fd.append('bukti', bukti);
 
       await api.post('/payments', fd);
       setMsg({ type: 'success', text: 'Bukti pembayaran berhasil diupload! Menunggu verifikasi admin.' });
       setBukti(null);
+      setJumlah('');
+      setKeterangan('');
       loadPayments();
     } catch (err) {
       setMsg({ type: 'error', text: err.response?.data?.message || 'Gagal upload. Coba lagi.' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.delete(`/payments/mine/${deleteTarget.id}`);
+      setMsg({ type: 'success', text: 'Pembayaran berhasil dihapus.' });
+      setDeleteTarget(null);
+      loadPayments();
+    } catch (err) {
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Gagal menghapus pembayaran.' });
+      setDeleteTarget(null);
     }
   };
 
@@ -101,13 +121,29 @@ export default function Pembayaran() {
           </div>
           <h2 className="font-bold text-primary-950">Upload Bukti Transfer</h2>
         </div>
-        <form onSubmit={handleUpload} className="flex flex-col sm:flex-row gap-3">
-          <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => setBukti(e.target.files[0])}
-            className="input-field flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600" required />
-          <button type="submit" disabled={saving || !bukti}
-            className="btn-primary flex items-center justify-center gap-2 shrink-0">
-            {saving ? <><FaSpinner className="animate-spin" /> Mengupload...</> : <><FaUpload /> Upload</>}
-          </button>
+        <form onSubmit={handleUpload} className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-primary-700 mb-1">Jumlah Nominal (Rp)</label>
+              <input type="number" min="0" placeholder="Contoh: 2500000" value={jumlah}
+                onChange={(e) => setJumlah(e.target.value)}
+                className="input-field" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-primary-700 mb-1">Keterangan Pembayaran</label>
+              <input type="text" placeholder="Contoh: Pendaftaran program, DP, pelunasan" value={keterangan}
+                onChange={(e) => setKeterangan(e.target.value)}
+                className="input-field" required />
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => setBukti(e.target.files[0])}
+              className="input-field flex-1 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600" required />
+            <button type="submit" disabled={saving || !bukti || !jumlah || !keterangan}
+              className="btn-primary flex items-center justify-center gap-2 shrink-0">
+              {saving ? <><FaSpinner className="animate-spin" /> Mengupload...</> : <><FaUpload /> Upload</>}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -133,15 +169,18 @@ export default function Pembayaran() {
               <thead>
                 <tr className="border-b border-cream-200 text-primary-600 uppercase text-xs">
                   <th className="px-4 py-3 font-medium">Tanggal</th>
+                  <th className="px-4 py-3 font-medium">Keterangan</th>
                   <th className="px-4 py-3 font-medium">Jumlah</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">File</th>
+                  <th className="px-4 py-3 font-medium">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cream-200/50 text-primary-700">
                 {payments.map((p) => (
                   <tr key={p.id} className="hover:bg-cream-50 transition-colors">
                     <td className="px-4 py-3">{new Date(p.created_at).toLocaleDateString('id-ID')}</td>
+                    <td className="px-4 py-3">{p.keterangan || '-'}</td>
                     <td className="px-4 py-3 font-medium">Rp {Number(p.jumlah).toLocaleString('id-ID')}</td>
                     <td className="px-4 py-3">{statusBadge(p.status)}</td>
                     <td className="px-4 py-3">
@@ -152,6 +191,12 @@ export default function Pembayaran() {
                         </button>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => setDeleteTarget(p)}
+                        className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-700 text-xs font-medium transition-colors">
+                        <FaTrash /> Hapus
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -159,6 +204,16 @@ export default function Pembayaran() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Hapus Pembayaran"
+        message={deleteTarget ? `Yakin ingin menghapus pembayaran Rp ${Number(deleteTarget.jumlah).toLocaleString('id-ID')} (${deleteTarget.keterangan || '-'})? File bukti juga akan dihapus.` : ''}
+        confirmText="Ya, Hapus"
+        danger
+      />
     </>
   );
 }

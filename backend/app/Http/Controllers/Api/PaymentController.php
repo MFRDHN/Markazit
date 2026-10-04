@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
-use App\Models\Applicant;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,24 +41,22 @@ class PaymentController extends Controller
     }
 
     /**
-     * Store a new payment (public).
+     * Store a new payment for the logged-in user's own registration.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'applicant_id' => 'required|exists:applicants,id',
-            'jumlah' => 'required|numeric|min:0',
+            'jumlah' => 'required|numeric|min:1000|max:100000000',
             'norek_pengirim' => 'nullable|string|max:50',
             'bank_pengirim' => 'nullable|string|max:100',
+            'keterangan' => 'nullable|string|max:255',
             'bukti' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        // Verify applicant is allowed to pay
-        $applicant = Applicant::where('id', $validated['applicant_id'])
-            ->whereNotNull('payment_allowed_at')
-            ->first();
-
-        if (!$applicant) {
+        // ponytail: always attribute to the caller's own registration —
+        // trusting applicant_id from the body let users pay on behalf of others.
+        $applicant = $request->user()->applicant;
+        if (!$applicant || !$applicant->payment_allowed_at) {
             return response()->json([
                 'message' => 'Pembayaran belum diizinkan. Silakan hubungi admin.',
             ], 403);
@@ -71,11 +68,15 @@ class PaymentController extends Controller
             DB::beginTransaction();
 
             if ($request->hasFile('bukti')) {
-                $buktiPath = $request->file('bukti')->store('payments', 'public');
-                $validated['bukti'] = $buktiPath;
+                // ponytail: private disk — proof files must not be web-servable
+                $buktiPath = $request->file('bukti')->store('payments', 'local');
             }
 
-            $payment = Payment::create($validated);
+            $payment = Payment::create([
+                ...$validated,
+                'applicant_id' => $applicant->id,
+                'bukti' => $buktiPath,
+            ]);
 
             DB::commit();
 
@@ -85,7 +86,7 @@ class PaymentController extends Controller
             DB::rollBack();
 
             if ($buktiPath) {
-                Storage::disk('public')->delete($buktiPath);
+                Storage::disk('local')->delete($buktiPath);
             }
 
             Log::error('Payment store failed: ' . $e->getMessage());
@@ -144,9 +145,41 @@ class PaymentController extends Controller
     {
         $applicant = $request->user()->applicant;
         abort_unless($applicant && $payment->applicant_id === $applicant->id, 403);
-        abort_unless($payment->bukti && Storage::disk('public')->exists($payment->bukti), 404);
+        abort_unless($payment->bukti && Storage::disk('local')->exists($payment->bukti), 404);
 
-        return Storage::disk('public')->response($payment->bukti, null, self::NO_CACHE);
+        return Storage::disk('local')->response($payment->bukti, null, self::NO_CACHE);
+    }
+
+    /**
+     * User deletes own payment record + proof file.
+     */
+    public function destroyOwn(Request $request, Payment $payment)
+    {
+        $applicant = $request->user()->applicant;
+        abort_unless($applicant && $payment->applicant_id === $applicant->id, 403);
+        abort_if($payment->status === 'verified', 422, 'Pembayaran yang sudah diverifikasi tidak bisa dihapus. Hubungi admin.');
+
+        if ($payment->bukti) {
+            Storage::disk('local')->delete($payment->bukti);
+        }
+        $payment->delete();
+
+        return response()->json(['message' => 'Pembayaran berhasil dihapus.']);
+    }
+
+    /**
+     * Delete payment record + proof file (admin only).
+     */
+    public function destroy(Payment $payment)
+    {
+        $this->ensureAdmin();
+
+        if ($payment->bukti) {
+            Storage::disk('local')->delete($payment->bukti);
+        }
+        $payment->delete();
+
+        return response()->json(['message' => 'Pembayaran berhasil dihapus.']);
     }
 
     /**
@@ -155,8 +188,8 @@ class PaymentController extends Controller
     public function viewFile(Payment $payment)
     {
         $this->ensureAdmin();
-        abort_unless($payment->bukti && Storage::disk('public')->exists($payment->bukti), 404);
+        abort_unless($payment->bukti && Storage::disk('local')->exists($payment->bukti), 404);
 
-        return Storage::disk('public')->response($payment->bukti, null, self::NO_CACHE);
+        return Storage::disk('local')->response($payment->bukti, null, self::NO_CACHE);
     }
 }

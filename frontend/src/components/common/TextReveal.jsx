@@ -1,37 +1,18 @@
 import { motion } from 'framer-motion';
 
-// ponytail: replaced spring with simple ease — spring re-calculates per frame
-// per word, 8 pages × ~10 words = 80 spring instances on page load. Unnecessary.
+// ponytail: was one motion span per word (stagger) — heavy on long headings.
+// Single fade-up block now.
 
 export function TextReveal({ text, className = "", delay = 0 }) {
-  const words = text.split(" ");
-  
-  const container = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.06, delayChildren: delay },
-    },
-  };
-
-  const child = {
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
-    hidden: { opacity: 0, y: 20 },
-  };
-
   return (
     <motion.div
-      className={`overflow-hidden flex flex-wrap ${className}`}
-      variants={container}
-      initial="hidden"
-      whileInView="visible"
+      className={`${className}`}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-10%" }}
+      transition={{ duration: 0.6, delay, ease: "easeOut" }}
     >
-      {words.map((word, index) => (
-        <motion.span variants={child} key={index} className="mr-[0.25em] mb-[0.1em] inline-block">
-          {word}
-        </motion.span>
-      ))}
+      {text}
     </motion.div>
   );
 }

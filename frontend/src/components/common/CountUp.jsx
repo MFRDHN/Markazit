@@ -5,7 +5,7 @@ import { useInView } from 'framer-motion';
 // requestAnimationFrame counter. Spring physics on every counter tick is
 // overkill for a number that just counts up once.
 
-export default function CountUp({ value, prefix = '', suffix = '', className = '', duration = 2, delay = 0, decimals = 0 }) {
+export default function CountUp({ value, prefix = '', suffix = '', className = '', duration = 1.2, delay = 0, decimals = 0 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const [display, setDisplay] = useState(decimals > 0 ? '0' : '0');
@@ -13,7 +13,7 @@ export default function CountUp({ value, prefix = '', suffix = '', className = '
   useEffect(() => {
     if (!isInView) return;
     const timeout = setTimeout(() => {
-      const steps = 30;
+      const steps = 24;
       let step = 0;
       const increment = value / steps;
       let current = 0;

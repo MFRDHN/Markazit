@@ -5,7 +5,6 @@ import TimelineSection from '../../components/sections/TimelineSection';
 import GallerySection from '../../components/sections/GallerySection';
 import CostSection from '../../components/sections/CostSection';
 import SEOHelmet from '../../components/common/SEOHelmet';
-import { SmoothReveal, ParallaxFade, ScaleOnScroll, BlurReveal } from '../../components/common/SmoothReveal';
 
 export default function Home() {
   return (
@@ -16,21 +15,11 @@ export default function Home() {
         canonicalPath="/"
       />
       <HeroSection />
-      <SmoothReveal>
-        <WhyUsSection />
-      </SmoothReveal>
-      <ParallaxFade speed={0.2}>
-        <ProgramSection />
-      </ParallaxFade>
-      <ScaleOnScroll>
-        <TimelineSection />
-      </ScaleOnScroll>
-      <BlurReveal>
-        <GallerySection />
-      </BlurReveal>
-      <SmoothReveal>
-        <CostSection />
-      </SmoothReveal>
+      <WhyUsSection />
+      <ProgramSection />
+      <TimelineSection />
+      <GallerySection />
+      <CostSection />
     </>
   );
 }

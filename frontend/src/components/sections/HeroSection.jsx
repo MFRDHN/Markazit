@@ -39,8 +39,6 @@ export default function HeroSection() {
             tag="h1"
             splitType="words"
             delay={0.08}
-            from={{ opacity: 0, y: 60, rotateX: -90 }}
-            to={{ opacity: 1, y: 0, rotateX: 0 }}
           />
         </div>
 

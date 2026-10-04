@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaUser, FaSave, FaFile, FaFileImage, FaFilePdf, FaExternalLinkAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaSpinner, FaUser, FaSave, FaFile, FaFileImage, FaFilePdf, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
 import api from '../../services/api';
 import SEOHelmet from '../../components/common/SEOHelmet';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
-// ponytail: fetch via axios to avoid 401 from direct href
+// ponytail: open tab first (user gesture) so popup blocker doesn't kill window.open after await
 const openFile = async (url) => {
+  const w = window.open('', '_blank');
   try {
     const res = await api.get(url, { responseType: 'blob' });
-    window.open(URL.createObjectURL(res.data), '_blank');
-  } catch { alert('Gagal membuka file'); }
+    w.location.href = URL.createObjectURL(res.data);
+  } catch {
+    w?.close();
+    alert('Gagal membuka file');
+  }
 };
 
 export default function DataDiri() {
@@ -18,6 +24,8 @@ export default function DataDiri() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState({ type: '', text: '' });
+  const [showDelete, setShowDelete] = useState(false);
+  const navigate = useNavigate();
 
   const loadData = () => api.get('/applicants/me')
     .then((res) => {
@@ -38,6 +46,18 @@ export default function DataDiri() {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleFile = (e) => setFiles({ ...files, [e.target.name]: e.target.files[0] });
 
+  const handleDelete = async () => {
+    try {
+      await api.delete('/applicants/me');
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_data');
+      navigate('/login');
+    } catch (err) {
+      setMsg({ type: 'error', text: err.response?.data?.message || 'Gagal menghapus pendaftaran.' });
+      setShowDelete(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -45,7 +65,9 @@ export default function DataDiri() {
 
     try {
       const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => { if (v) fd.append(k, v); });
+      // Send everything the form shows — skipping empty fields made cleared
+      // values silently keep their old data server-side
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       Object.entries(files).forEach(([k, v]) => { if (v) fd.append(k, v); });
       fd.append('_method', 'PUT');
 
@@ -141,6 +163,25 @@ export default function DataDiri() {
           {saving ? <><FaSpinner className="animate-spin" /> Menyimpan...</> : <><FaSave /> Simpan Data</>}
         </button>
       </form>
+
+      <div className="admin-card mt-6 border-red-500/20">
+        <h3 className="font-bold text-red-600 text-sm mb-2">Zona Berbahaya</h3>
+        <p className="text-sm text-primary-600 mb-4">Menghapus pendaftaran akan menghapus semua data dan dokumen Anda secara permanen, termasuk akun login.</p>
+        <button onClick={() => setShowDelete(true)} disabled={saving}
+          className="flex items-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-500/20">
+          <FaTrash /> Hapus Pendaftaran
+        </button>
+      </div>
+
+      <ConfirmModal
+        isOpen={showDelete}
+        onClose={() => setShowDelete(false)}
+        onConfirm={handleDelete}
+        title="Hapus Pendaftaran"
+        message="Yakin ingin menghapus pendaftaran Anda? Semua data, dokumen, dan akun akan dihapus permanen."
+        confirmText="Ya, Hapus"
+        danger
+      />
     </>
   );
 }

@@ -22,6 +22,12 @@ class ApplicantResource extends JsonResource
             'foto' => $this->foto,
             'motivasi' => $this->motivasi,
             'status' => $this->status,
+            'payment_allowed_at' => $this->payment_allowed_at,
+            // Device/IP trace for admin (spam investigation)
+            'registrasi_ip' => $this->when(
+                $this->relationLoaded('user') && auth()->user()?->role === 'admin',
+                fn () => $this->user?->registrasi_ip
+            ),
             'payments' => PaymentResource::collection($this->whenLoaded('payments')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -34,7 +34,7 @@ Route::get('/testimonials', [TestimonialController::class, 'index']);
 // Blog
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/categories', [BlogController::class, 'categories']);
-Route::get('/blogs/{blog:id}', [BlogController::class, 'show']);
+Route::get('/blogs/{blog:slug}', [BlogController::class, 'show']);
 
 // Applicant registration (public) — throttled: 5 per IP per minute
 Route::post('/applicants', [ApplicantController::class, 'store'])->middleware('throttle:forms');
@@ -61,10 +61,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // User own data
     Route::get('/applicants/me', [ApplicantController::class, 'showOwn']);
     Route::put('/applicants/me', [ApplicantController::class, 'updateOwn']);
+    Route::delete('/applicants/me', [ApplicantController::class, 'destroyOwn']);
 
     // User own payments
     Route::get('/payments/mine', [PaymentController::class, 'myPayments']);
     Route::post('/payments', [PaymentController::class, 'store'])->middleware('throttle:forms');
+    Route::delete('/payments/mine/{payment}', [PaymentController::class, 'destroyOwn']);
 
     // User view own file
     Route::get('/applicants/me/file/{field}', [ApplicantController::class, 'viewOwnFile']);
@@ -72,10 +74,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // ==========================================
-// ADMIN ROUTES (auth:sanctum)
+// ADMIN ROUTES (auth:sanctum + role admin)
 // ==========================================
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     // Auth
     Route::post('/admin/logout', [AuthController::class, 'logout']);
@@ -115,5 +117,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/payments', [PaymentController::class, 'index']);
     Route::get('/payments/{payment}', [PaymentController::class, 'show']);
     Route::put('/payments/{payment}/status', [PaymentController::class, 'updateStatus']);
+    Route::delete('/payments/{payment}', [PaymentController::class, 'destroy']);
     Route::get('/payments/{payment}/file', [PaymentController::class, 'viewFile']);
 });

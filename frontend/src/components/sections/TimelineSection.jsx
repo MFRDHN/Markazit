@@ -5,10 +5,10 @@ import { HoverCard } from '../common/HoverCard';
 import InteractiveBackground from '../common/InteractiveBackground';
 
 const timeline = [
-  { month: 'Bulan 1-3', title: 'Adaptasi & Tahsin', desc: 'Penyesuaian lingkungan, kelas bahasa Arab dasar, dan tahsin makharijul huruf.', anim: { initial: { opacity: 0, x: -100 }, enter: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -100 } } },
-  { month: 'Bulan 4-6', title: 'Intensif IT & Halaqah', desc: 'Mulai kelas web development dan rutinitas halaqah tahfidz quran di Masjid Nabawi.', anim: { initial: { opacity: 0, y: 80, rotate: -5 }, enter: { opacity: 1, y: 0, rotate: 0 }, exit: { opacity: 0, y: 80, rotate: -5 } } },
-  { month: 'Bulan 7-9', title: 'Dars Masyaikh & Proyek IT', desc: 'Mengikuti kajian kitab para ulama dan membangun aplikasi portofolio.', anim: { initial: { opacity: 0, scale: 0.6, filter: 'blur(4px)' }, enter: { opacity: 1, scale: 1, filter: 'blur(0px)' }, exit: { opacity: 0, scale: 0.6, filter: 'blur(4px)' } } },
-  { month: 'Bulan 10-12', title: 'Persiapan Beasiswa & Sertifikasi', desc: 'Pemberkasan pendaftaran UIM, sertifikasi IT, dan ujian akhir hafalan.', anim: { initial: { opacity: 0, x: 100 }, enter: { opacity: 1, x: 0 }, exit: { opacity: 0, x: 100 } } },
+  { month: 'Bulan 1-3', title: 'Adaptasi & Tahsin', desc: 'Penyesuaian lingkungan, kelas bahasa Arab dasar, dan tahsin makharijul huruf.' },
+  { month: 'Bulan 4-6', title: 'Intensif IT & Halaqah', desc: 'Mulai kelas web development dan rutinitas halaqah tahfidz quran di Masjid Nabawi.' },
+  { month: 'Bulan 7-9', title: 'Dars Masyaikh & Proyek IT', desc: 'Mengikuti kajian kitab para ulama dan membangun aplikasi portofolio.' },
+  { month: 'Bulan 10-12', title: 'Persiapan Beasiswa & Sertifikasi', desc: 'Pemberkasan pendaftaran UIM, sertifikasi IT, dan ujian akhir hafalan.' },
 ];
 
 export default function TimelineSection() {
@@ -25,9 +25,6 @@ export default function TimelineSection() {
             tag="h2"
             splitType="chars"
             delay={0.06}
-            duration={1.0}
-            from={{ opacity: 0, x: -60, rotate: -15 }}
-            to={{ opacity: 1, x: 0, rotate: 0 }}
           />
           <SplitText
             text={t('timeline.subtitle')}
@@ -35,9 +32,6 @@ export default function TimelineSection() {
             tag="p"
             splitType="words"
             delay={0.15}
-            duration={0.5}
-            from={{ opacity: 0, x: 40 }}
-            to={{ opacity: 1, x: 0 }}
           />
         </div>
 
@@ -54,10 +48,10 @@ export default function TimelineSection() {
             {timeline.map((item, index) => (
               <motion.div
                 key={index}
-                initial={item.anim.initial}
-                whileInView={item.anim.enter}
-                viewport={{ once: false, margin: '-50px' }}
-                transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.08 }}
                 className="relative flex md:flex-col items-start md:items-center gap-6 md:gap-8"
               >
                 <div className="md:hidden mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gold-500 border-4 border-gold-50/50 relative z-10" />

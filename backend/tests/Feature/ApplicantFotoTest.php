@@ -22,7 +22,7 @@ class ApplicantFotoTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('public');
+        Storage::fake('local');
 
         $this->admin = User::factory()->create(['role' => 'admin']);
         $this->user1 = User::factory()->create(['role' => 'applicant']);
@@ -56,8 +56,8 @@ class ApplicantFotoTest extends TestCase
         $this->assertNotEquals($app1->foto, $app2->foto);
 
         // Files must exist on disk
-        Storage::disk('public')->assertExists($app1->foto);
-        Storage::disk('public')->assertExists($app2->foto);
+        Storage::disk('local')->assertExists($app1->foto);
+        Storage::disk('local')->assertExists($app2->foto);
     }
 
     public function test_admin_viewFile_returns_correct_foto_for_each_applicant()

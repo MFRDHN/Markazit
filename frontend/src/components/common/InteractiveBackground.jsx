@@ -1,17 +1,21 @@
 import { useEffect, useRef } from 'react';
 
-// ponytail: default particles 30→15. O(n²) line drawing between particles
-// is the bottleneck. 15 keeps visual feel while cutting line checks by 75%.
+// ponytail: was a rAF loop at 60fps running forever, even with the section
+// off-screen (5+ instances on Home). Now: IntersectionObserver pauses the
+// loop off-screen, rendering is throttled to 30fps, and prefers-reduced-motion
+// users get a single static frame.
 
-export default function InteractiveBackground({ className = '', particleCount = 15, color = 'rgba(1, 126, 183, 0.15)', lineColor = 'rgba(1, 126, 183, 0.06)' }) {
+export default function InteractiveBackground({ className = '', particleCount = 8, color = 'rgba(1, 126, 183, 0.15)', lineColor = 'rgba(1, 126, 183, 0.06)' }) {
   const canvasRef = useRef(null);
-  const mouseRef = useRef({ x: -999, y: -999 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let animId;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let animId = null;
+    let visible = false;
+    let frame = 0;
     let particles = [];
 
     const resize = () => {
@@ -35,14 +39,6 @@ export default function InteractiveBackground({ className = '', particleCount = 
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        const dx = mouseRef.current.x - p.x;
-        const dy = mouseRef.current.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 150) {
-          const force = (150 - dist) / 150;
-          p.vx -= (dx / dist) * force * 0.04;
-          p.vy -= (dy / dist) * force * 0.04;
-        }
 
         p.vx += (Math.random() - 0.5) * 0.02;
         p.vy += (Math.random() - 0.5) * 0.02;
@@ -77,38 +73,43 @@ export default function InteractiveBackground({ className = '', particleCount = 
         }
       }
 
-      animId = requestAnimationFrame(draw);
+      animId = requestAnimationFrame(loop);
     };
 
-    const onMouse = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    };
-
-    const onLeave = () => {
-      mouseRef.current = { x: -999, y: -999 };
+    // 30fps: skip odd frames
+    const loop = () => {
+      if (!visible) return;
+      if (frame++ % 2 === 0) draw();
+      else animId = requestAnimationFrame(loop);
     };
 
     resize();
     initParticles();
-    draw();
+    draw(); // static frame for reduced-motion / before visible
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible && !reduceMotion) animId = requestAnimationFrame(loop);
+        else if (!visible && animId) cancelAnimationFrame(animId);
+      },
+      { rootMargin: '100px' }
+    );
+    io.observe(canvas);
 
     window.addEventListener('resize', resize);
-    canvas.addEventListener('mousemove', onMouse);
-    canvas.addEventListener('mouseleave', onLeave);
 
     return () => {
-      cancelAnimationFrame(animId);
+      io.disconnect();
       window.removeEventListener('resize', resize);
-      canvas.removeEventListener('mousemove', onMouse);
-      canvas.removeEventListener('mouseleave', onLeave);
+      if (animId) cancelAnimationFrame(animId);
     };
   }, [particleCount, color, lineColor]);
 
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute inset-0 pointer-events-auto w-full h-full ${className}`}
+      className={`absolute inset-0 pointer-events-none w-full h-full ${className}`}
       style={{ zIndex: 0 }}
     />
   );

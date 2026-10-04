@@ -14,6 +14,77 @@ use Illuminate\Support\Str;
 class BlogController extends Controller
 {
     /**
+     * Allowlist HTML sanitizer for blog content (stored XSS guard).
+     * ponytail: stdlib DOM walker covers this site's tag set; swap to
+     * HTMLPurifier if editors ever need images/embeds/inline styles.
+     */
+    private function sanitizeHtml(string $html): string
+    {
+        $allowed = ['p','b','strong','i','em','u','s','h1','h2','h3','h4','h5','h6',
+            'ul','ol','li','a','br','hr','blockquote','pre','code','span'];
+        $drop = ['script','style','iframe','object','embed','form','input','button',
+            'textarea','select','svg','math','noscript','link','meta'];
+
+        $doc = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $ok = $doc->loadHTML(
+            '<?xml encoding="utf-8"?><body>' . $html . '</body>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        if (!$ok) {
+            return strip_tags($html);
+        }
+
+        $toRemove = [];
+        foreach (iterator_to_array($doc->getElementsByTagName('*')) as $node) {
+            $tag = strtolower($node->nodeName);
+
+            // Skip our own wrapper elements
+            if ($tag === 'html' || $tag === 'body') {
+                continue;
+            }
+
+            if (in_array($tag, $drop, true)) {
+                $toRemove[] = $node;
+                continue;
+            }
+
+            if (!in_array($tag, $allowed, true)) {
+                // Unknown but benign tag: unwrap, keep its content
+                while ($node->firstChild) {
+                    $node->parentNode->insertBefore($node->firstChild, $node);
+                }
+                $toRemove[] = $node;
+                continue;
+            }
+
+            for ($i = $node->attributes->length - 1; $i >= 0; $i--) {
+                $name = strtolower($node->attributes->item($i)->nodeName);
+                if ($tag === 'a' && $name === 'href'
+                    && preg_match('/^(https?:\/\/|mailto:)/i', trim($node->getAttribute($name)))) {
+                    $node->setAttribute('rel', 'noopener nofollow');
+                    continue;
+                }
+                if ($tag === 'a' && $name === 'title') {
+                    continue;
+                }
+                $node->removeAttribute($name);
+            }
+        }
+
+        foreach ($toRemove as $node) {
+            $node->parentNode?->removeChild($node);
+        }
+
+        $out = '';
+        foreach ($doc->getElementsByTagName('body')->item(0)->childNodes as $child) {
+            $out .= $doc->saveHTML($child);
+        }
+        return $out;
+    }
+
+    /**
      * Display a listing of blog posts.
      */
     public function index(Request $request)
@@ -25,7 +96,7 @@ class BlogController extends Controller
         }
 
         if ($request->has('search')) {
-            $search = $request->search;
+            $search = addcslashes($request->search, '\\%_');
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%{$search}%")
                   ->orWhere('konten', 'like', "%{$search}%");
@@ -54,6 +125,8 @@ class BlogController extends Controller
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['judul']);
         }
+
+        $validated['konten'] = $this->sanitizeHtml($validated['konten']);
 
         $thumbPath = null;
 
@@ -114,6 +187,10 @@ class BlogController extends Controller
         ]);
 
         $oldThumb = null;
+
+        if (isset($validated['konten'])) {
+            $validated['konten'] = $this->sanitizeHtml($validated['konten']);
+        }
 
         try {
             DB::beginTransaction();

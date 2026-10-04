@@ -1,14 +1,26 @@
 <?php
 /**
- * Serve files from storage/app/public/.
+ * Serve PUBLIC uploads only (gallery/blogs/testimonials).
+ * ponytail: plain PHP because shared hosting has no storage symlink;
+ * sensitive dirs (applicants/, payments/) live on the private disk and
+ * are served exclusively through authenticated API routes.
  */
-$path = $_GET['f'] ?? '';
-$path = ltrim($path, '/');
+$allowedPrefixes = ['gallery/', 'blogs/', 'testimonials/'];
+
+$path = ltrim($_GET['f'] ?? '', '/');
+
+$allowed = false;
+foreach ($allowedPrefixes as $prefix) {
+    if (str_starts_with($path, $prefix)) {
+        $allowed = true;
+        break;
+    }
+}
 
 $base = __DIR__ . '/../storage/app/public/';
 $real = realpath($base . $path);
 
-if (!$real || !str_starts_with($real, realpath($base))) {
+if (!$allowed || !$real || !str_starts_with($real, realpath($base))) {
     http_response_code(404);
     exit;
 }

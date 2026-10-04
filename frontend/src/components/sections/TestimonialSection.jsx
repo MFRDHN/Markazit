@@ -60,9 +60,6 @@ export default function TestimonialSection() {
             tag="h2"
             splitType="chars"
             delay={0.07}
-            duration={0.6}
-            from={{ opacity: 0, filter: 'blur(8px)', y: 20 }}
-            to={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
           />
           <SplitText
             text={t('testimonials.subtitle')}
@@ -70,9 +67,6 @@ export default function TestimonialSection() {
             tag="p"
             splitType="words"
             delay={0.15}
-            duration={0.8}
-            from={{ opacity: 0, rotate: -5, y: 20 }}
-            to={{ opacity: 1, rotate: 0, y: 0 }}
           />
         </div>
 

@@ -7,14 +7,7 @@ import SplitText from '../common/SplitText';
 import InteractiveBackground from '../common/InteractiveBackground';
 import api from '../../services/api';
 
-const itemAnim = [
-  { initial: { opacity: 0, x: -80, rotate: -8 }, enter: { opacity: 1, x: 0, rotate: 0 }, exit: { opacity: 0, x: -80, rotate: -8 } },
-  { initial: { opacity: 0, y: 60, scale: 0.7 }, enter: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: 60, scale: 0.7 } },
-  { initial: { opacity: 0, scale: 0.3, filter: 'blur(6px)' }, enter: { opacity: 1, scale: 1, filter: 'blur(0px)' }, exit: { opacity: 0, scale: 0.3, filter: 'blur(6px)' } },
-  { initial: { opacity: 0, x: 80, skewY: 5 }, enter: { opacity: 1, x: 0, skewY: 0 }, exit: { opacity: 0, x: 80, skewY: 5 } },
-  { initial: { opacity: 0, y: -60, rotate: 10 }, enter: { opacity: 1, y: 0, rotate: 0 }, exit: { opacity: 0, y: -60, rotate: 10 } },
-  { initial: { opacity: 0, x: -40, y: 40, rotate: -5 }, enter: { opacity: 1, x: 0, y: 0, rotate: 0 }, exit: { opacity: 0, x: -40, y: 40, rotate: -5 } },
-];
+// ponytail: 6 per-item skew/blur/rotate variants removed — single fade-up.
 
 export default function GallerySection() {
   const { t } = useTranslation();
@@ -64,9 +57,6 @@ export default function GallerySection() {
             tag="h2"
             splitType="chars"
             delay={0.05}
-            duration={0.85}
-            from={{ opacity: 0, scale: 0.3, rotate: 180 }}
-            to={{ opacity: 1, scale: 1, rotate: 0 }}
           />
           <SplitText
             text={t('gallery.subtitle')}
@@ -74,9 +64,6 @@ export default function GallerySection() {
             tag="p"
             splitType="words"
             delay={0.12}
-            duration={0.65}
-            from={{ opacity: 0, rotate: 5, filter: 'blur(3px)' }}
-            to={{ opacity: 1, rotate: 0, filter: 'blur(0px)' }}
           />
         </div>
 
@@ -84,10 +71,10 @@ export default function GallerySection() {
           {galleries.map((item, index) => (
             <motion.div
               key={item.id}
-              initial={itemAnim[index].initial}
-              whileInView={itemAnim[index].enter}
-              viewport={{ once: false, margin: '-50px' }}
-              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.06 }}
               className="relative group overflow-hidden rounded-2xl aspect-video"
             >
               <div
@@ -102,7 +89,7 @@ export default function GallerySection() {
                 <img
                   src={item.foto}
                   alt={item.judul}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 relative z-10"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-10"
                   loading="lazy"
                   onLoad={() => setLoadedImages(prev => ({ ...prev, [item.id]: true }))}
                   onError={(e) => { e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Found'; setLoadedImages(prev => ({ ...prev, [item.id]: true })); }}

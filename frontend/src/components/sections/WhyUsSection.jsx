@@ -6,12 +6,9 @@ import SplitText from '../common/SplitText';
 import { HoverCard } from '../common/HoverCard';
 import InteractiveBackground from '../common/InteractiveBackground';
 
-const cardAnim = [
-  { initial: { opacity: 0, x: -80, scale: 0.9 }, enter: { opacity: 1, x: 0, scale: 1 }, exit: { opacity: 0, x: -80, scale: 0.9 } },
-  { initial: { opacity: 0, y: 80, rotate: -5 }, enter: { opacity: 1, y: 0, rotate: 0 }, exit: { opacity: 0, y: 80, rotate: -5 } },
-  { initial: { opacity: 0, scale: 0.5, filter: 'blur(6px)' }, enter: { opacity: 1, scale: 1, filter: 'blur(0px)' }, exit: { opacity: 0, scale: 0.5, filter: 'blur(6px)' } },
-  { initial: { opacity: 0, x: 80, skewY: 4 }, enter: { opacity: 1, x: 0, skewY: 0 }, exit: { opacity: 0, x: 80, skewY: 4 } },
-];
+// ponytail: per-card skew/blur/rotate variants removed — single fade-up.
+const cardEnter = { opacity: 1, y: 0 };
+const cardInitial = { opacity: 0, y: 24 };
 
 export default function WhyUsSection() {
   const { t } = useTranslation();
@@ -35,9 +32,6 @@ export default function WhyUsSection() {
             tag="h2"
             splitType="chars"
             delay={0.04}
-            duration={0.8}
-            from={{ opacity: 0, y: 40, rotateX: -90 }}
-            to={{ opacity: 1, y: 0, rotateX: 0 }}
           />
           <SplitText
             text={t('why_us.subtitle')}
@@ -45,27 +39,23 @@ export default function WhyUsSection() {
             tag="p"
             splitType="words"
             delay={0.1}
-            duration={0.6}
-            from={{ opacity: 0, y: 30 }}
-            to={{ opacity: 1, y: 0 }}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {items.map((item, index) => {
             const Icon = icons[index];
-            const anim = cardAnim[index];
             return (
               <motion.div
                 key={index}
-                initial={anim.initial}
-                whileInView={anim.enter}
-                viewport={{ once: false, margin: '-50px' }}
-                transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                initial={cardInitial}
+                whileInView={cardEnter}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
               >
                 <HoverCard delay={0}>
                   <div className="h-full bg-white p-8 text-center group-hover:bg-cream-50 transition-colors duration-300">
-                    <div className="w-16 h-16 mx-auto bg-gold-50/80 text-gold-600 rounded-2xl flex items-center justify-center mb-6 transform group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-300 shadow-sm border border-gold-400/20">
+                    <div className="w-16 h-16 mx-auto bg-gold-50/80 text-gold-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-gold-400/20">
                       <Icon className="text-2xl" />
                     </div>
                     <h3 className="text-xl font-bold text-primary-950 mb-3 font-display">{item.title}</h3>

@@ -15,6 +15,7 @@ class PaymentResource extends JsonResource
             'jumlah' => $this->jumlah,
             'norek_pengirim' => $this->norek_pengirim,
             'bank_pengirim' => $this->bank_pengirim,
+            'keterangan' => $this->keterangan,
             'status' => $this->status,
             // ponytail: raw path only; frontend uses API routes with auth header
             'bukti' => $this->bukti,

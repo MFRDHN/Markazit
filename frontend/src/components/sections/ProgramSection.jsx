@@ -20,7 +20,6 @@ const programs = [
     color: 'from-primary-600 to-primary-400',
     bgLight: 'bg-primary-500/10',
     textColor: 'text-primary-400',
-    anim: { initial: { opacity: 0, x: -100, rotate: -10 }, enter: { opacity: 1, x: 0, rotate: 0 }, exit: { opacity: 0, x: -100, rotate: -10 } }
   },
   {
     title: 'Halaqah Quran',
@@ -30,7 +29,6 @@ const programs = [
     color: 'from-gold-600 to-gold-400',
     bgLight: 'bg-gold-500/10',
     textColor: 'text-gold-400',
-    anim: { initial: { opacity: 0, scale: 0.6, filter: 'blur(4px)' }, enter: { opacity: 1, scale: 1, filter: 'blur(0px)' }, exit: { opacity: 0, scale: 0.6, filter: 'blur(4px)' } }
   },
   {
     title: 'Coding & IoT',
@@ -40,7 +38,6 @@ const programs = [
     color: 'from-primary-700 to-primary-500',
     bgLight: 'bg-primary-500/10',
     textColor: 'text-primary-400',
-    anim: { initial: { opacity: 0, y: 80, skewX: -8 }, enter: { opacity: 1, y: 0, skewX: 0 }, exit: { opacity: 0, y: 80, skewX: -8 } }
   },
   {
     title: 'Bimbingan Beasiswa',
@@ -50,7 +47,6 @@ const programs = [
     color: 'from-gold-700 to-gold-500',
     bgLight: 'bg-gold-500/10',
     textColor: 'text-gold-400',
-    anim: { initial: { opacity: 0, x: 100, rotate: 10 }, enter: { opacity: 1, x: 0, rotate: 0 }, exit: { opacity: 0, x: -100, rotate: 10 } }
   }
 ];
 
@@ -71,9 +67,6 @@ export default function ProgramSection() {
             tag="h2"
             splitType="chars"
             delay={0.05}
-            duration={0.9}
-            from={{ opacity: 0, scale: 0.5, y: -40 }}
-            to={{ opacity: 1, scale: 1, y: 0 }}
           />
           <SplitText
             text={t('programs.subtitle')}
@@ -81,9 +74,6 @@ export default function ProgramSection() {
             tag="p"
             splitType="words"
             delay={0.12}
-            duration={0.7}
-            from={{ opacity: 0, scale: 0.8, filter: 'blur(4px)' }}
-            to={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
           />
         </div>
 
@@ -91,10 +81,10 @@ export default function ProgramSection() {
           {programs.map((program, index) => (
             <motion.div
               key={index}
-              initial={program.anim.initial}
-              whileInView={program.anim.enter}
-              viewport={{ once: false, margin: '-50px' }}
-              transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.08 }}
             >
               <HoverCard delay={0}>
                 <div className="h-full bg-cream-50 p-8 sm:p-10 relative overflow-hidden group-hover:bg-white transition-colors">

@@ -75,7 +75,6 @@ export default function LanjutkanPembayaran() {
 
     try {
       const formData = new FormData();
-      formData.append('applicant_id', paymentData.applicant_id);
       formData.append('jumlah', '47500000');
       formData.append('norek_pengirim', norekPengirim);
       formData.append('bank_pengirim', bankPengirim);

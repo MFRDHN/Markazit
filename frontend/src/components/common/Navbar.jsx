@@ -57,11 +57,11 @@ export default function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      {/* Animated gradient border when scrolled */}
+      {/* Static gradient border when scrolled */}
       <div className={`absolute bottom-0 left-0 right-0 h-[1px] transition-opacity duration-700 ${
         scrolled ? 'opacity-100' : 'opacity-0'
       }`}>
-        <div className="w-full h-full bg-gradient-to-r from-transparent via-primary-400 to-gold-400 bg-[length:200%_100%] animate-gradient-x" />
+        <div className="w-full h-full bg-gradient-to-r from-transparent via-primary-400 to-gold-400" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

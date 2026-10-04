@@ -35,14 +35,14 @@ class ApplicantController extends Controller
     public function index(Request $request)
     {
         $this->ensureAdmin();
-        $query = Applicant::with('payments')->latest();
+        $query = Applicant::with(['payments', 'user'])->latest();
 
         if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
         if ($request->has('search')) {
-            $search = $request->search;
+            $search = addcslashes($request->search, '\\%_');
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
@@ -62,8 +62,27 @@ class ApplicantController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email'), Rule::unique('applicants', 'email')],
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
+
+        // Max 2 registrations per network; 3rd attempt gets blocked and logged.
+        // ponytail: CGNAT/mobile ISPs rotate the public IP every session
+        // (e.g. ...92.236 -> .238 -> .239), so counting the exact IP never
+        // trips. We count the whole IPv4 /24 (or IPv6 /64) block instead —
+        // still a speed bump, not identity.
+        $ip = $request->ip();
+        $block = str_contains($ip, ':')
+            ? implode(':', array_slice(explode(':', $ip), 0, 4))
+            : implode('.', array_slice(explode('.', $ip), 0, 3));
+        if (User::where('registrasi_ip', 'like', "{$block}%")->count() >= 2) {
+            Log::warning('Registration blocked: IP limit reached', [
+                'ip' => $ip,
+                'email' => $validated['email'],
+            ]);
+            return response()->json([
+                'message' => 'Pendaftaran gagal. Silakan hubungi admin untuk proses pendaftaran.',
+            ], 429);
+        }
 
         try {
             DB::beginTransaction();
@@ -73,6 +92,7 @@ class ApplicantController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role' => 'applicant',
+                'registrasi_ip' => $ip,
             ]);
 
             // ponytail: minimal applicant stub; user fills rest in dashboard
@@ -134,7 +154,12 @@ class ApplicantController extends Controller
             'nama' => 'sometimes|required|string|max:255',
             'usia' => 'sometimes|required|integer|min:15|max:45',
             'no_hp' => ['sometimes', 'required', 'string', 'max:20', Rule::unique('applicants', 'no_hp')->ignore($applicant->id)],
-            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('applicants', 'email')->ignore($applicant->id)],
+            // Email must be free on BOTH tables — login authenticates against users
+            'email' => [
+                'sometimes', 'required', 'email', 'max:255',
+                Rule::unique('applicants', 'email')->ignore($applicant->id),
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
             'motivasi' => 'nullable|string',
             'dokumen_ktp' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'dokumen_kk' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -150,13 +175,26 @@ class ApplicantController extends Controller
                 if ($request->hasFile($field)) {
                     // Delete old file
                     if ($applicant->$field) {
-                        Storage::disk('public')->delete($applicant->$field);
+                        Storage::disk('local')->delete($applicant->$field);
                     }
-                    $validated[$field] = $request->file($field)->store('applicants/' . $field, 'public');
+                    // ponytail: private disk — these are ID docs, never web-servable
+                    $validated[$field] = $request->file($field)->store('applicants/' . $field, 'local');
                 }
             }
 
             $applicant->update($validated);
+
+            // Keep users table in sync: login + navbar read users.email/name.
+            // Without this, editing email breaks login and name stays as the
+            // registration placeholder (email prefix).
+            $userSync = array_intersect_key($validated, ['email' => null, 'nama' => null]);
+            if (isset($userSync['nama'])) {
+                $userSync['name'] = $userSync['nama'];
+                unset($userSync['nama']);
+            }
+            if ($userSync) {
+                $user->update($userSync);
+            }
 
             DB::commit();
 
@@ -166,7 +204,7 @@ class ApplicantController extends Controller
             DB::rollBack();
             Log::error('Applicant update failed: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Gagal menyimpan data: ' . $e->getMessage(),
+                'message' => 'Gagal menyimpan data. Silakan coba lagi.',
             ], 500);
         }
     }
@@ -182,11 +220,11 @@ class ApplicantController extends Controller
         $relativePath = $applicant->$field;
         Log::debug('viewFile', ['applicant_id' => $applicant->id, 'field' => $field, 'path' => $relativePath]);
 
-        if (!Storage::disk('public')->exists($relativePath)) {
+        if (!Storage::disk('local')->exists($relativePath)) {
             abort(404);
         }
 
-        return Storage::disk('public')->response($relativePath, null, self::NO_CACHE);
+        return Storage::disk('local')->response($relativePath, null, self::NO_CACHE);
     }
 
     /**
@@ -201,7 +239,7 @@ class ApplicantController extends Controller
         $ext = pathinfo($relativePath, PATHINFO_EXTENSION);
         $filename = $field . '_' . $applicant->nama . '.' . $ext;
 
-        return Storage::disk('public')->download($relativePath, $filename, self::NO_CACHE);
+        return Storage::disk('local')->download($relativePath, $filename, self::NO_CACHE);
     }
 
     /**
@@ -216,11 +254,11 @@ class ApplicantController extends Controller
 
         $relativePath = $applicant->$field;
 
-        if (!Storage::disk('public')->exists($relativePath)) {
+        if (!Storage::disk('local')->exists($relativePath)) {
             abort(404);
         }
 
-        return Storage::disk('public')->response($relativePath, null, self::NO_CACHE);
+        return Storage::disk('local')->response($relativePath, null, self::NO_CACHE);
     }
 
     private function validateFileField(string $field, $applicant): void
@@ -235,7 +273,7 @@ class ApplicantController extends Controller
     public function show(Applicant $applicant)
     {
         $this->ensureAdmin();
-        return new ApplicantResource($applicant->load('payments'));
+        return new ApplicantResource($applicant->load(['payments', 'user']));
     }
 
     /**
@@ -275,9 +313,11 @@ class ApplicantController extends Controller
 
         $hasPayment = $applicant->payments()->exists();
 
+        // ponytail: no applicant_id here — it was an enumeration handle.
+        // Residual oracle (does this approved number have a payment?) is
+        // throttled and business-required for the legacy phone-check page.
         return response()->json([
             'allowed' => true,
-            'applicant_id' => $applicant->id,
             'has_payment' => $hasPayment,
             'message' => $hasPayment
                 ? 'Bukti pembayaran sudah dikirim.'
@@ -310,7 +350,7 @@ class ApplicantController extends Controller
         $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
         foreach ($fileFields as $field) {
             if ($applicant->$field) {
-                Storage::disk('public')->delete($applicant->$field);
+                Storage::disk('local')->delete($applicant->$field);
             }
         }
 
@@ -323,5 +363,39 @@ class ApplicantController extends Controller
         $applicant->delete();
 
         return response()->json(['message' => 'Pendaftar berhasil dihapus.']);
+    }
+
+    /**
+     * User deletes their own registration + account.
+     */
+    public function destroyOwn(Request $request)
+    {
+        $user = $request->user();
+        $applicant = $user->applicant;
+
+        if (!$applicant) {
+            return response()->json(['message' => 'Data pendaftar tidak ditemukan.'], 404);
+        }
+
+        // Delete associated files
+        $fileFields = ['dokumen_ktp', 'dokumen_kk', 'dokumen_paspor', 'foto'];
+        foreach ($fileFields as $field) {
+            if ($applicant->$field) {
+                Storage::disk('local')->delete($applicant->$field);
+            }
+        }
+
+        // Delete payment proofs
+        foreach ($applicant->payments as $payment) {
+            if ($payment->bukti) {
+                Storage::disk('local')->delete($payment->bukti);
+            }
+        }
+
+        $user->tokens()->delete();
+        $applicant->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Pendaftaran berhasil dihapus.']);
     }
 }
